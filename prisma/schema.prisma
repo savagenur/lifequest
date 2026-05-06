@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// USER MODEL
+// ============================================
+// The player of LifeQuest. Stores their profile, XP, and level.
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  xp        Int      @default(0)
+  level     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  avatar           Avatar?           // One user has one avatar (optional)
+  quests           Quest[]           // One user can create many quests
+  questCompletions QuestCompletion[] // One user can have many completions
+
+  @@map("users") // Table name in PostgreSQL
+}
+
+// ============================================
+// AVATAR MODEL
+// ============================================
+// The user's visual representation in the game.
+// Separate from User to keep concerns clean and allow future expansion.
+model Avatar {
+  id        String   @id @default(cuid())
+  imageUrl  String?
+  style     String   @default("default")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationship: One avatar belongs to one user
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("avatars")
+}
+
+// ============================================
+// QUEST MODEL
+// ============================================
+// A task or goal the user wants to complete.
+// Think of it as a "mission" in a video game.
+model Quest {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  xpReward    Int         @default(10)
+  difficulty  Difficulty  @default(EASY)
+  category    Category    @default(PERSONAL)
+  isRecurring Boolean     @default(false)
+  status      QuestStatus @default(ACTIVE)
+  dueDate     DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relationship: One quest belongs to one user
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relationship: One quest can have many completions (for recurring quests)
+  completions QuestCompletion[]
+
+  @@index([userId]) // Index for faster queries by user
+  @@map("quests")
+}
+
+// ============================================
+// QUEST COMPLETION MODEL
+// ============================================
+// Records each time a quest is completed.
+// Separate from Quest to track history and support recurring quests.
+model QuestCompletion {
+  id          String   @id @default(cuid())
+  completedAt DateTime @default(now())
+  xpEarned    Int
+
+  // Relationships
+  questId String
+  quest   Quest  @relation(fields: [questId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([questId])
+  @@map("quest_completions")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+// Enums are fixed sets of values. They make your data more predictable.
+
+enum Difficulty {
+  EASY   // 10 XP base
+  MEDIUM // 25 XP base
+  HARD   // 50 XP base
+  EPIC   // 100 XP base
+}
+
+enum Category {
+  HEALTH    // Exercise, diet, sleep
+  LEARNING  // Reading, courses, skills
+  CAREER    // Work tasks, networking
+  PERSONAL  // Hobbies, relationships
+  FINANCE   // Budgeting, saving
+}
+
+enum QuestStatus {
+  ACTIVE    // Quest is in progress
+  COMPLETED // Quest is done
+  ABANDONED // User gave up on quest
+}
