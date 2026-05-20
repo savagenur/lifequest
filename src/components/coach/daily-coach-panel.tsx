@@ -39,7 +39,11 @@ export function DailyCoachPanel() {
 
   const pendingQuests = batch?.quests.filter((q) => q.status === "PENDING") || [];
   const skippedQuests = batch?.quests.filter((q) => q.status === "SKIPPED") || [];
+  const acceptedQuests = batch?.quests.filter((q) => q.status === "ACCEPTED") || [];
   const hasGenerated = !!batch;
+
+  // Sort quests: PENDING first, SKIPPED second, ACCEPTED last
+  const sortedQuests = [...pendingQuests, ...skippedQuests, ...acceptedQuests];
   const regenerationCount = batch?.regenerationCount ?? 0;
   const regenerationsLeft = 1 - regenerationCount; // Max 1 regeneration (total 2 generations)
   const canRegenerate = hasGenerated && regenerationsLeft > 0;
@@ -142,7 +146,7 @@ export function DailyCoachPanel() {
 
       {/* Quest Cards */}
       <div className="space-y-3">
-        {batch.quests.map((quest) => (
+        {sortedQuests.map((quest) => (
           <AIQuestCard
             key={quest.id}
             id={quest.id}

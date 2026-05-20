@@ -86,8 +86,8 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-8 pb-24 overflow-y-auto">
+      <div className="bg-surface rounded-2xl max-w-lg w-full max-h-[calc(100vh-8rem)] overflow-y-auto my-auto">
         {/* Header */}
         <div className="p-6 border-b border-border relative">
           {showCloseButton && onClose && (

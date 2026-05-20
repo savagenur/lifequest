@@ -219,8 +219,8 @@ export default function QuestsPage() {
 
       {/* Create Quest Dialog */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-xl p-4 w-full max-w-md space-y-4">
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-8 pb-24 overflow-y-auto">
+          <div className="bg-surface rounded-xl p-4 w-full max-w-md space-y-4 my-auto">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-text-primary">Create New Quest</h3>
               <button
@@ -313,6 +313,7 @@ export default function QuestsPage() {
                     difficulty: questForm.difficulty,
                     category: questForm.category,
                     xpReward: selectedDifficulty?.xp ?? 10,
+                    scheduledDate: formatDateKey(selectedDate),
                   });
                 }}
                 disabled={!questForm.title.trim() || createQuest.isPending}
@@ -327,8 +328,8 @@ export default function QuestsPage() {
 
       {/* Edit Quest Dialog */}
       {editingQuestId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-xl p-4 w-full max-w-md space-y-4">
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-8 pb-24 overflow-y-auto">
+          <div className="bg-surface rounded-xl p-4 w-full max-w-md space-y-4 my-auto">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-text-primary">Edit Quest</h3>
               <button

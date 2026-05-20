@@ -53,9 +53,17 @@ export const questRouter = router({
           .enum(["HEALTH", "LEARNING", "CAREER", "PERSONAL", "FINANCE"])
           .default("PERSONAL"),
         dueDate: z.string().datetime().optional(),
+        scheduledDate: z.string().optional(), // ISO date string (YYYY-MM-DD) for creating quests on a specific date
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // If scheduledDate is provided, use it for createdAt
+      let createdAt: Date | undefined;
+      if (input.scheduledDate) {
+        const [year, month, day] = input.scheduledDate.split("-").map(Number);
+        createdAt = new Date(year, month - 1, day, 12, 0, 0, 0); // Set to noon to avoid timezone issues
+      }
+
       const quest = await ctx.db.quest.create({
         data: {
           title: input.title,
@@ -65,6 +73,7 @@ export const questRouter = router({
           category: input.category as Category,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           userId: ctx.user.id,
+          ...(createdAt && { createdAt }),
         },
       });
 
