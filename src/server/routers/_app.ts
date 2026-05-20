@@ -1,5 +1,6 @@
 import { router } from "../trpc";
 import { questRouter } from "./quest";
+import { userRouter } from "./user";
 
 /**
  * App Router
@@ -10,14 +11,12 @@ import { questRouter } from "./quest";
  * - trpc.quest.getDaily()
  * - trpc.quest.create()
  * - trpc.quest.complete()
- *
- * Add more routers here as your app grows:
- * - userRouter for user-related endpoints
- * - avatarRouter for avatar customization
- * - achievementRouter for achievements/badges
+ * - trpc.user.getById()
+ * - trpc.user.getStats()
  */
 export const appRouter = router({
   quest: questRouter,
+  user: userRouter,
 });
 
 // Export the type for use in the frontend
