@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
         <FormSuccess message={success} />
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-1">
             Email
           </label>
           <input
@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+            className="w-full px-4 py-3 border border-border bg-surface text-text-primary rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-text-muted"
             placeholder="you@example.com"
           />
         </div>
@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 px-4 bg-primary text-white font-medium rounded-xl hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
           {isLoading ? "Sending..." : "Send reset link"}
@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
 
         <Link
           href="/auth/signin"
-          className="flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+          className="flex items-center justify-center gap-2 text-sm text-text-secondary hover:text-text-primary"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to sign in

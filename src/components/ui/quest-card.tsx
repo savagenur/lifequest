@@ -23,10 +23,10 @@ interface QuestCardProps {
 }
 
 const difficultyConfig = {
-  EASY: { label: "Easy", color: "text-green-500", bg: "bg-green-100 dark:bg-green-900/30" },
-  MEDIUM: { label: "Medium", color: "text-yellow-500", bg: "bg-yellow-100 dark:bg-yellow-900/30" },
-  HARD: { label: "Hard", color: "text-orange-500", bg: "bg-orange-100 dark:bg-orange-900/30" },
-  EPIC: { label: "Epic", color: "text-purple-500", bg: "bg-purple-100 dark:bg-purple-900/30" },
+  EASY: { label: "Easy", color: "text-success", bg: "bg-success-light" },
+  MEDIUM: { label: "Medium", color: "text-warning", bg: "bg-warning-light" },
+  HARD: { label: "Hard", color: "text-warning", bg: "bg-warning-light" },
+  EPIC: { label: "Epic", color: "text-primary", bg: "bg-primary-light" },
 };
 
 const categoryConfig = {
@@ -104,8 +104,8 @@ export function QuestCard({
     <div
       onClick={handleCardClick}
       className={`
-        relative bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm 
-        border border-gray-100 dark:border-gray-700
+        relative bg-surface rounded-xl p-4 shadow-sm 
+        border border-border
         transition-all duration-200 hover:shadow-md
         ${isCompleted ? "opacity-60" : ""}
         ${hasExpandableContent ? "cursor-pointer" : ""}
@@ -119,7 +119,7 @@ export function QuestCard({
           {/* Category & Difficulty badges */}
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm">{catConfig.icon}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">{catConfig.label}</span>
+            <span className="text-xs text-text-muted">{catConfig.label}</span>
             <span className={`text-xs px-2 py-0.5 rounded-full ${diffConfig.bg} ${diffConfig.color}`}>
               {diffConfig.label}
             </span>
@@ -131,21 +131,21 @@ export function QuestCard({
           </div>
 
           {/* Title */}
-          <h3 className={`font-semibold text-gray-900 dark:text-white ${isCompleted ? "line-through" : ""}`}>
+          <h3 className={`font-semibold text-text-primary ${isCompleted ? "line-through" : ""}`}>
             {title}
           </h3>
 
           {/* Description - truncated when collapsed, full when expanded */}
           {description && (
-            <p className={`text-sm text-gray-500 dark:text-gray-400 mt-1 ${isExpanded ? "" : "line-clamp-2"}`}>
+            <p className={`text-sm text-text-muted mt-1 ${isExpanded ? "" : "line-clamp-2"}`}>
               {description}
             </p>
           )}
 
           {/* Reason - only shown when expanded */}
           {isExpanded && reason && (
-            <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <p className="text-xs text-purple-700 dark:text-purple-300">
+            <div className="mt-3 p-3 bg-primary-light rounded-lg">
+              <p className="text-xs text-primary">
                 <span className="font-medium">Why this quest:</span> {reason}
               </p>
             </div>
@@ -154,11 +154,11 @@ export function QuestCard({
           {/* Footer: XP & Due date */}
           <div className="flex items-center gap-3 mt-3">
             <div className="flex items-center gap-1 text-sm">
-              <Zap className="w-4 h-4 text-yellow-500" />
-              <span className="font-medium text-yellow-600 dark:text-yellow-400">+{xpReward} XP</span>
+              <Zap className="w-4 h-4 text-warning" />
+              <span className="font-medium text-warning">+{xpReward} XP</span>
             </div>
             {dueDate && (
-              <div className="flex items-center gap-1 text-sm text-gray-400">
+              <div className="flex items-center gap-1 text-sm text-text-muted">
                 <Clock className="w-4 h-4" />
                 <span>{new Date(dueDate).toLocaleDateString()}</span>
               </div>
@@ -178,9 +178,9 @@ export function QuestCard({
               disabled={isLoading}
               className="
                 shrink-0 w-10 h-10 rounded-full 
-                bg-green-100 dark:bg-green-900/30 
-                text-green-600 dark:text-green-400
-                hover:bg-green-200 dark:hover:bg-green-900/50
+                bg-success-light 
+                text-success
+                hover:opacity-80
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors flex items-center justify-center
               "
@@ -192,8 +192,8 @@ export function QuestCard({
 
           {/* Trophy icon for completed quests */}
           {isCompleted && (
-            <div className="shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-yellow-500" />
+            <div className="shrink-0 w-10 h-10 rounded-full bg-surface-secondary flex items-center justify-center">
+              <Trophy className="w-5 h-5 text-warning" />
             </div>
           )}
 
@@ -207,8 +207,8 @@ export function QuestCard({
               }}
               className="
                 shrink-0 w-8 h-8 rounded-full 
-                text-gray-400 hover:text-gray-600 dark:hover:text-gray-200
-                hover:bg-gray-100 dark:hover:bg-gray-700
+                text-text-muted hover:text-text-primary
+                hover:bg-surface-hover
                 transition-colors flex items-center justify-center
               "
               title="More options"
@@ -219,7 +219,7 @@ export function QuestCard({
             {/* Dropdown menu - positions above or below based on available space */}
             {showMenu && (
               <div 
-                className={`absolute right-0 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 ${
+                className={`absolute right-0 w-40 bg-surface rounded-lg shadow-lg border border-border py-1 z-50 ${
                   menuPosition === "top" ? "bottom-full mb-1" : "top-full mt-1"
                 }`}
               >
@@ -231,7 +231,7 @@ export function QuestCard({
                       onEdit(id);
                       setShowMenu(false);
                     }}
-                    className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-left text-sm text-text-primary hover:bg-surface-hover flex items-center gap-2"
                   >
                     <Pencil className="w-4 h-4" />
                     Edit
@@ -247,7 +247,7 @@ export function QuestCard({
                       setShowMenu(false);
                     }}
                     disabled={isUncompleting}
-                    className="w-full px-3 py-2 text-left text-sm text-orange-600 dark:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 disabled:opacity-50"
+                    className="w-full px-3 py-2 text-left text-sm text-warning hover:bg-surface-hover flex items-center gap-2 disabled:opacity-50"
                   >
                     <RotateCcw className="w-4 h-4" />
                     {isUncompleting ? "Reverting..." : "Mark Incomplete"}
@@ -263,7 +263,7 @@ export function QuestCard({
                       setShowMenu(false);
                     }}
                     disabled={isDeleting}
-                    className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 disabled:opacity-50"
+                    className="w-full px-3 py-2 text-left text-sm text-error hover:bg-surface-hover flex items-center gap-2 disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4" />
                     {isDeleting ? "Deleting..." : "Delete"}

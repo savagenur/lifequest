@@ -46,9 +46,9 @@ export function DailyCoachPanel() {
 
   if (isLoading) {
     return (
-      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 text-center">
-        <Sparkles className="w-8 h-8 mx-auto text-purple-500 animate-pulse mb-2" />
-        <p className="text-purple-600 dark:text-purple-400">Loading AI Coach...</p>
+      <div className="bg-primary-light rounded-xl p-6 text-center">
+        <Sparkles className="w-8 h-8 mx-auto text-primary animate-pulse mb-2" />
+        <p className="text-primary">Loading AI Coach...</p>
       </div>
     );
   }
@@ -133,7 +133,7 @@ export function DailyCoachPanel() {
         <button
           onClick={() => acceptAll.mutate()}
           disabled={acceptAll.isPending}
-          className="w-full py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 font-medium rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-2 bg-primary-light text-primary font-medium rounded-lg hover:opacity-80 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <CheckCheck className="w-4 h-4" />
           Accept All ({pendingQuests.length} quests)
@@ -163,7 +163,7 @@ export function DailyCoachPanel() {
 
       {/* All processed message */}
       {pendingQuests.length === 0 && batch.quests.length > 0 && (
-        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-4 text-text-muted">
           <p>All quests processed for today!</p>
           {skippedQuests.length > 0 && (
             <p className="text-sm">You can undo skipped quests if you change your mind.</p>

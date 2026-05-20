@@ -7,18 +7,18 @@ export default function VerifyRequestPage() {
     <AuthCard title="Check your email">
       <div className="text-center py-8">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
-            <Mail className="w-8 h-8 text-indigo-600" />
+          <div className="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center">
+            <Mail className="w-8 h-8 text-primary" />
           </div>
-          <p className="text-gray-900 font-medium">
+          <p className="text-text-primary font-medium">
             We&apos;ve sent you a verification link
           </p>
-          <p className="text-gray-500 text-sm max-w-xs">
+          <p className="text-text-muted text-sm max-w-xs">
             Please check your email inbox and click the link to verify your account.
           </p>
           <Link
             href="/auth/signin"
-            className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
+            className="mt-4 text-primary hover:text-primary-hover font-medium"
           >
             Back to sign in
           </Link>

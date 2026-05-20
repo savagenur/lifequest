@@ -126,14 +126,14 @@ export default function QuestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Quests</h2>
-          <p className="text-gray-500 dark:text-gray-400">
+          <h2 className="text-2xl font-bold text-text-primary">Quests</h2>
+          <p className="text-text-muted">
             {activeCount} active{completedTodayCount > 0 ? `, ${completedTodayCount} completed today` : ""}
           </p>
         </div>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
         >
           <Plus className="w-5 h-5" />
           <span>New Quest</span>
@@ -142,28 +142,28 @@ export default function QuestsPage() {
 
       {/* Create Quest Form */}
       {showCreateForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 space-y-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Create New Quest</h3>
+        <div className="bg-surface rounded-xl p-4 border border-border space-y-4">
+          <h3 className="font-semibold text-text-primary">Create New Quest</h3>
           
           <input
             type="text"
             placeholder="Quest title..."
             value={questForm.title}
             onChange={(e) => setQuestForm({ ...questForm, title: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted"
           />
           
           <textarea
             placeholder="Description (optional)"
             value={questForm.description}
             onChange={(e) => setQuestForm({ ...questForm, description: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white resize-none"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted resize-none"
             rows={2}
           />
 
           {/* Category Selection */}
           <div>
-            <label className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">Category</label>
+            <label className="text-sm text-text-muted mb-2 block">Category</label>
             <div className="flex flex-wrap gap-2">
               {categories.slice(1).map((cat) => (
                 <button
@@ -171,8 +171,8 @@ export default function QuestsPage() {
                   onClick={() => setQuestForm({ ...questForm, category: cat.value as typeof questForm.category })}
                   className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-colors ${
                     questForm.category === cat.value
-                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                      ? "bg-primary-light text-primary ring-1 ring-primary"
+                      : "bg-surface-secondary text-text-secondary"
                   }`}
                 >
                   <span>{cat.icon}</span>
@@ -184,7 +184,7 @@ export default function QuestsPage() {
 
           {/* Difficulty Selection */}
           <div>
-            <label className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">
+            <label className="text-sm text-text-muted mb-2 block">
               Difficulty (+{selectedDifficulty?.xp} XP)
             </label>
             <div className="flex gap-2">
@@ -194,8 +194,8 @@ export default function QuestsPage() {
                   onClick={() => setQuestForm({ ...questForm, difficulty: diff.value })}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     questForm.difficulty === diff.value
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                      ? "bg-primary text-white"
+                      : "bg-surface-secondary text-text-secondary"
                   }`}
                 >
                   {diff.label}
@@ -211,7 +211,7 @@ export default function QuestsPage() {
                 setShowCreateForm(false);
                 setQuestForm(defaultQuestForm);
               }}
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="flex-1 px-4 py-2 rounded-lg border border-border text-text-secondary hover:bg-surface-hover"
             >
               Cancel
             </button>
@@ -227,7 +227,7 @@ export default function QuestsPage() {
                 });
               }}
               disabled={!questForm.title.trim() || createQuest.isPending}
-              className="flex-1 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {createQuest.isPending ? "Creating..." : "Create Quest"}
             </button>
@@ -238,15 +238,15 @@ export default function QuestsPage() {
       {/* Edit Quest Dialog */}
       {editingQuestId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 w-full max-w-md space-y-4">
+          <div className="bg-surface rounded-xl p-4 w-full max-w-md space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Edit Quest</h3>
+              <h3 className="font-semibold text-text-primary">Edit Quest</h3>
               <button
                 onClick={() => {
                   setEditingQuestId(null);
                   setQuestForm(defaultQuestForm);
                 }}
-                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -257,20 +257,20 @@ export default function QuestsPage() {
               placeholder="Quest title..."
               value={questForm.title}
               onChange={(e) => setQuestForm({ ...questForm, title: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted"
             />
             
             <textarea
               placeholder="Description (optional)"
               value={questForm.description}
               onChange={(e) => setQuestForm({ ...questForm, description: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted resize-none"
               rows={2}
             />
 
             {/* Category Selection */}
             <div>
-              <label className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">Category</label>
+              <label className="text-sm text-text-muted mb-2 block">Category</label>
               <div className="flex flex-wrap gap-2">
                 {categories.slice(1).map((cat) => (
                   <button
@@ -278,8 +278,8 @@ export default function QuestsPage() {
                     onClick={() => setQuestForm({ ...questForm, category: cat.value as typeof questForm.category })}
                     className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-colors ${
                       questForm.category === cat.value
-                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                        ? "bg-primary-light text-primary ring-1 ring-primary"
+                        : "bg-surface-secondary text-text-secondary"
                     }`}
                   >
                     <span>{cat.icon}</span>
@@ -291,7 +291,7 @@ export default function QuestsPage() {
 
             {/* Difficulty Selection */}
             <div>
-              <label className="text-sm text-gray-500 dark:text-gray-400 mb-2 block">
+              <label className="text-sm text-text-muted mb-2 block">
                 Difficulty (+{selectedDifficulty?.xp} XP)
               </label>
               <div className="flex gap-2">
@@ -301,8 +301,8 @@ export default function QuestsPage() {
                     onClick={() => setQuestForm({ ...questForm, difficulty: diff.value })}
                     className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       questForm.difficulty === diff.value
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                        ? "bg-primary text-white"
+                        : "bg-surface-secondary text-text-secondary"
                     }`}
                   >
                     {diff.label}
@@ -318,7 +318,7 @@ export default function QuestsPage() {
                   setEditingQuestId(null);
                   setQuestForm(defaultQuestForm);
                 }}
-                className="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                className="flex-1 px-4 py-2 rounded-lg border border-border text-text-secondary hover:bg-surface-hover"
               >
                 Cancel
               </button>
@@ -335,7 +335,7 @@ export default function QuestsPage() {
                   });
                 }}
                 disabled={!questForm.title.trim() || updateQuest.isPending}
-                className="flex-1 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {updateQuest.isPending ? "Saving..." : "Save Changes"}
               </button>
@@ -352,8 +352,8 @@ export default function QuestsPage() {
             onClick={() => setSelectedCategory(cat.value)}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               selectedCategory === cat.value
-                ? "bg-blue-600 text-white"
-                : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
+                ? "bg-primary text-white"
+                : "bg-surface text-text-secondary border border-border"
             }`}
           >
             <span className="mr-1.5">{cat.icon}</span>
@@ -387,9 +387,9 @@ export default function QuestsPage() {
         ))}
 
         {activeCount === 0 && completedTodayCount === 0 && (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
-            <Filter className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">
+          <div className="text-center py-12 bg-surface rounded-xl border border-border">
+            <Filter className="w-12 h-12 mx-auto text-text-muted mb-3" />
+            <p className="text-text-muted">
               {selectedCategory === "ALL"
                 ? "No quests yet. Create your first quest!"
                 : `No ${selectedCategory.toLowerCase()} quests`}
@@ -403,18 +403,18 @@ export default function QuestsPage() {
         <div className="mt-6">
           <button
             onClick={() => setShowCompletedSection(!showCompletedSection)}
-            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="w-full flex items-center justify-between p-4 bg-surface-secondary rounded-xl border border-border hover:bg-surface-hover transition-colors"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                <Trophy className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+              <div className="w-8 h-8 rounded-full bg-warning-light flex items-center justify-center">
+                <Trophy className="w-4 h-4 text-warning" />
               </div>
-              <span className="font-medium text-gray-700 dark:text-gray-200">
+              <span className="font-medium text-text-primary">
                 Completed Today ({completedTodayCount})
               </span>
             </div>
             <ChevronDown 
-              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+              className={`w-5 h-5 text-text-muted transition-transform duration-200 ${
                 showCompletedSection ? "rotate-180" : ""
               }`} 
             />

@@ -63,11 +63,11 @@ function ResetPasswordContent() {
       <AuthCard title="Password Reset">
         <div className="text-center py-8">
           <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-success" />
             </div>
-            <p className="text-gray-900 font-medium">Password updated successfully!</p>
-            <p className="text-gray-500 text-sm">Redirecting to sign in...</p>
+            <p className="text-text-primary font-medium">Password updated successfully!</p>
+            <p className="text-text-muted text-sm">Redirecting to sign in...</p>
           </div>
         </div>
       </AuthCard>
@@ -83,7 +83,7 @@ function ResetPasswordContent() {
         <FormError message={error} />
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="password" className="block text-sm font-medium text-text-primary mb-1">
             New Password
           </label>
           <div className="relative">
@@ -94,22 +94,22 @@ function ResetPasswordContent() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all pr-12"
+              className="w-full px-4 py-3 border border-border bg-surface text-text-primary rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all pr-12 placeholder:text-text-muted"
               placeholder="••••••••"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
+          <p className="text-xs text-text-muted mt-1">Must be at least 8 characters</p>
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-text-primary mb-1">
             Confirm New Password
           </label>
           <input
@@ -118,7 +118,7 @@ function ResetPasswordContent() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+            className="w-full px-4 py-3 border border-border bg-surface text-text-primary rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-text-muted"
             placeholder="••••••••"
           />
         </div>
@@ -126,7 +126,7 @@ function ResetPasswordContent() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 px-4 bg-primary text-white font-medium rounded-xl hover:bg-primary-hover focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
           {isLoading ? "Resetting..." : "Reset password"}
@@ -134,7 +134,7 @@ function ResetPasswordContent() {
 
         <Link
           href="/auth/signin"
-          className="block text-center text-sm text-gray-600 hover:text-gray-900"
+          className="block text-center text-sm text-text-secondary hover:text-text-primary"
         >
           Back to sign in
         </Link>
@@ -149,7 +149,7 @@ export default function ResetPasswordPage() {
       fallback={
         <AuthCard title="Reset your password">
           <div className="text-center py-8">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto" />
+            <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
           </div>
         </AuthCard>
       }

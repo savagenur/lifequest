@@ -6,8 +6,6 @@ const groq = process.env.GROQ_API_KEY
   ? new Groq({ apiKey: process.env.GROQ_API_KEY })
   : null;
 
-// Set to true to use mock data instead of Groq (for development/testing)
-const USE_MOCK = !process.env.GROQ_API_KEY || process.env.USE_MOCK_AI === "true";
 
 interface UserContext {
   name: string | null;
@@ -64,8 +62,8 @@ const XP_BY_DIFFICULTY: Record<Difficulty, number> = {
   EPIC: 100,
 };
 
-// Mock quest templates for development/testing
-function generateMockQuests(context: UserContext): DailyQuestsResponse {
+// Mock quest templates for development/testing (exported for potential future use)
+export function generateMockQuests(context: UserContext): DailyQuestsResponse {
   const intensityConfig = INTENSITY_CONFIG[context.intensity];
   const questCount = intensityConfig.questCount;
   

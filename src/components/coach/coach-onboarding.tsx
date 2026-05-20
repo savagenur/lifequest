@@ -87,23 +87,23 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700 relative">
+        <div className="p-6 border-b border-border relative">
           {showCloseButton && onClose && (
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
           )}
-          <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
+          <div className="flex items-center gap-2 text-primary mb-2">
             <Sparkles className="w-5 h-5" />
             <span className="font-medium">{initialData ? "Edit AI Coach Settings" : "AI Coach Setup"}</span>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-bold text-text-primary">
             {step === 1 && "What do you want to improve?"}
             {step === 2 && "Tell me about your challenges"}
             {step === 3 && "How much time do you have?"}
@@ -115,7 +115,7 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
               <div
                 key={s}
                 className={`h-1 flex-1 rounded-full ${
-                  s <= step ? "bg-purple-500" : "bg-gray-200 dark:bg-gray-700"
+                  s <= step ? "bg-primary" : "bg-surface-secondary"
                 }`}
               />
             ))}
@@ -127,7 +127,7 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
           {/* Step 1: Focus Areas */}
           {step === 1 && (
             <div className="space-y-3">
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+              <p className="text-text-muted text-sm mb-4">
                 Select the areas you want to focus on (pick at least one)
               </p>
               {FOCUS_AREAS.map((area) => (
@@ -136,15 +136,15 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
                   onClick={() => toggleFocusArea(area.value)}
                   className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
                     focusAreas.includes(area.value)
-                      ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                      ? "border-primary bg-primary-light"
+                      : "border-border hover:border-border-secondary"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{area.icon}</span>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{area.label}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{area.description}</p>
+                      <p className="font-medium text-text-primary">{area.label}</p>
+                      <p className="text-sm text-text-muted">{area.description}</p>
                     </div>
                   </div>
                 </button>
@@ -155,30 +155,30 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
           {/* Step 2: Challenges */}
           {step === 2 && (
             <div className="space-y-4">
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
+              <p className="text-text-muted text-sm">
                 What&apos;s holding you back? This helps me create better quests for you.
               </p>
               <textarea
                 value={challenges}
                 onChange={(e) => setChallenges(e.target.value)}
                 placeholder="e.g., I procrastinate a lot, I struggle to exercise regularly, I want to read more but never find time..."
-                className="w-full h-32 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white resize-none"
+                className="w-full h-32 p-4 rounded-xl border border-border bg-surface text-text-primary placeholder:text-text-muted resize-none"
               />
-              <p className="text-xs text-gray-400">Optional, but helps personalize your quests</p>
+              <p className="text-xs text-text-muted">Optional, but helps personalize your quests</p>
             </div>
           )}
 
           {/* Step 3: Daily Time */}
           {step === 3 && (
             <div className="space-y-6">
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
+              <p className="text-text-muted text-sm">
                 How much time can you dedicate to self-improvement each day?
               </p>
               <div className="text-center">
-                <p className="text-5xl font-bold text-purple-600 dark:text-purple-400">
+                <p className="text-5xl font-bold text-primary">
                   {dailyTime}
                 </p>
-                <p className="text-gray-500 dark:text-gray-400">minutes per day</p>
+                <p className="text-text-muted">minutes per day</p>
               </div>
               <input
                 type="range"
@@ -187,9 +187,9 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
                 step="15"
                 value={dailyTime}
                 onChange={(e) => setDailyTime(Number(e.target.value))}
-                className="w-full accent-purple-500"
+                className="w-full accent-primary"
               />
-              <div className="flex justify-between text-sm text-gray-400">
+              <div className="flex justify-between text-sm text-text-muted">
                 <span>15 min</span>
                 <span>3 hours</span>
               </div>
@@ -199,7 +199,7 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
           {/* Step 4: Intensity */}
           {step === 4 && (
             <div className="space-y-3">
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+              <p className="text-text-muted text-sm mb-4">
                 How hard should I push you?
               </p>
               {INTENSITIES.map((int) => (
@@ -208,15 +208,15 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
                   onClick={() => setIntensity(int.value)}
                   className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
                     intensity === int.value
-                      ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                      ? "border-primary bg-primary-light"
+                      : "border-border hover:border-border-secondary"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{int.icon}</span>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{int.label}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{int.description}</p>
+                      <p className="font-medium text-text-primary">{int.label}</p>
+                      <p className="text-sm text-text-muted">{int.description}</p>
                     </div>
                   </div>
                 </button>
@@ -227,7 +227,7 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
           {/* Step 5: Coach Style */}
           {step === 5 && (
             <div className="space-y-3">
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+              <p className="text-text-muted text-sm mb-4">
                 How should I talk to you?
               </p>
               {COACH_STYLES.map((style) => (
@@ -236,13 +236,13 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
                   onClick={() => setCoachStyle(style.value)}
                   className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
                     coachStyle === style.value
-                      ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                      ? "border-primary bg-primary-light"
+                      : "border-border hover:border-border-secondary"
                   }`}
                 >
-                  <p className="font-medium text-gray-900 dark:text-white">{style.label}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{style.description}</p>
-                  <p className="text-sm text-purple-600 dark:text-purple-400 mt-1 italic">
+                  <p className="font-medium text-text-primary">{style.label}</p>
+                  <p className="text-sm text-text-muted">{style.description}</p>
+                  <p className="text-sm text-primary mt-1 italic">
                     &ldquo;{style.example}&rdquo;
                   </p>
                 </button>
@@ -252,11 +252,11 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex justify-between">
+        <div className="p-6 border-t border-border flex justify-between">
           {step > 1 ? (
             <button
               onClick={() => setStep(step - 1)}
-              className="flex items-center gap-1 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              className="flex items-center gap-1 px-4 py-2 text-text-secondary hover:text-text-primary"
             >
               <ChevronLeft className="w-4 h-4" />
               Back
@@ -269,7 +269,7 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
             <button
               onClick={() => setStep(step + 1)}
               disabled={!canProceed()}
-              className="flex items-center gap-1 px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
               <ChevronRight className="w-4 h-4" />
@@ -278,7 +278,7 @@ export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, 
             <button
               onClick={handleSubmit}
               disabled={saveProfile.isPending}
-              className="flex items-center gap-2 px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50"
             >
               <Sparkles className="w-4 h-4" />
               {saveProfile.isPending ? "Setting up..." : "Start with AI Coach"}

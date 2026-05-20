@@ -1,22 +1,101 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light theme - Clean, warm, accessible */
+  --background: #fafafa;
+  --foreground: #18181b;
+  
+  /* Surface colors */
+  --surface: #ffffff;
+  --surface-secondary: #f4f4f5;
+  --surface-hover: #e4e4e7;
+  
+  /* Border colors */
+  --border: #e4e4e7;
+  --border-secondary: #d4d4d8;
+  
+  /* Text colors */
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+  
+  /* Primary accent - Indigo */
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-light: #e0e7ff;
+  
+  /* Success */
+  --success: #22c55e;
+  --success-light: #dcfce7;
+  
+  /* Warning */
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  
+  /* Error */
+  --error: #ef4444;
+  --error-light: #fee2e2;
+}
+
+.dark {
+  /* Dark theme - Modern, easy on eyes, high contrast */
+  --background: #09090b;
+  --foreground: #fafafa;
+  
+  /* Surface colors */
+  --surface: #18181b;
+  --surface-secondary: #27272a;
+  --surface-hover: #3f3f46;
+  
+  /* Border colors */
+  --border: #27272a;
+  --border-secondary: #3f3f46;
+  
+  /* Text colors */
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  
+  /* Primary accent - Indigo (brighter for dark mode) */
+  --primary: #818cf8;
+  --primary-hover: #6366f1;
+  --primary-light: #312e81;
+  
+  /* Success */
+  --success: #4ade80;
+  --success-light: #14532d;
+  
+  /* Warning */
+  --warning: #fbbf24;
+  --warning-light: #78350f;
+  
+  /* Error */
+  --error: #f87171;
+  --error-light: #7f1d1d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-secondary: var(--border-secondary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-error: var(--error);
+  --color-error-light: var(--error-light);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

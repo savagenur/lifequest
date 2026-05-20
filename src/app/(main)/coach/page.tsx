@@ -26,18 +26,18 @@ export default function CoachPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-purple-500" />
+          <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-primary" />
             AI Coach
           </h2>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-text-muted">
             Personalized quests powered by AI
           </p>
         </div>
         {profile?.onboardingComplete && (
           <button
             onClick={() => setShowSettings(true)}
-            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="p-2 rounded-lg bg-surface-secondary text-text-secondary hover:bg-surface-hover"
             title="Edit AI Coach Settings"
           >
             <Settings className="w-5 h-5" />
@@ -75,26 +75,26 @@ export default function CoachPage() {
 
       {/* Profile Summary */}
       {profile && !showSettings && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-          <h3 className="font-medium text-gray-900 dark:text-white mb-3">Your Coach Settings</h3>
+        <div className="bg-surface rounded-xl p-4 border border-border">
+          <h3 className="font-medium text-text-primary mb-3">Your Coach Settings</h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-gray-500 dark:text-gray-400">Focus Areas</p>
-              <p className="text-gray-900 dark:text-white">
+              <p className="text-text-muted">Focus Areas</p>
+              <p className="text-text-primary">
                 {profile.focusAreas.join(", ") || "Not set"}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400">Intensity</p>
-              <p className="text-gray-900 dark:text-white">{profile.intensity}</p>
+              <p className="text-text-muted">Intensity</p>
+              <p className="text-text-primary">{profile.intensity}</p>
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400">Daily Time</p>
-              <p className="text-gray-900 dark:text-white">{profile.dailyTimeMinutes} min</p>
+              <p className="text-text-muted">Daily Time</p>
+              <p className="text-text-primary">{profile.dailyTimeMinutes} min</p>
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400">Coach Style</p>
-              <p className="text-gray-900 dark:text-white">{profile.coachStyle}</p>
+              <p className="text-text-muted">Coach Style</p>
+              <p className="text-text-primary">{profile.coachStyle}</p>
             </div>
           </div>
         </div>

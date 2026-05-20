@@ -44,20 +44,20 @@ function VerifyEmailContent() {
       <div className="text-center py-8">
         {status === "loading" && (
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-            <p className="text-gray-600">Verifying your email...</p>
+            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+            <p className="text-text-secondary">Verifying your email...</p>
           </div>
         )}
 
         {status === "success" && (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-success" />
             </div>
-            <p className="text-gray-900 font-medium">{message}</p>
+            <p className="text-text-primary font-medium">{message}</p>
             <Link
               href="/auth/signin"
-              className="mt-4 px-6 py-3 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors"
+              className="mt-4 px-6 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-hover transition-colors"
             >
               Sign in
             </Link>
@@ -66,13 +66,13 @@ function VerifyEmailContent() {
 
         {status === "error" && (
           <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-              <XCircle className="w-8 h-8 text-red-600" />
+            <div className="w-16 h-16 bg-error-light rounded-full flex items-center justify-center">
+              <XCircle className="w-8 h-8 text-error" />
             </div>
-            <p className="text-gray-900 font-medium">{message}</p>
+            <p className="text-text-primary font-medium">{message}</p>
             <Link
               href="/auth/signin"
-              className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
+              className="mt-4 text-primary hover:text-primary-hover font-medium"
             >
               Back to sign in
             </Link>
@@ -89,7 +89,7 @@ export default function VerifyEmailPage() {
       fallback={
         <AuthCard title="Email Verification">
           <div className="text-center py-8">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto" />
+            <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
           </div>
         </AuthCard>
       }
