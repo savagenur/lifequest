@@ -29,6 +29,8 @@ model User {
   avatar           Avatar?           // One user has one avatar (optional)
   quests           Quest[]           // One user can create many quests
   questCompletions QuestCompletion[] // One user can have many completions
+  coachProfile     CoachProfile?     // AI Coach preferences
+  dailyQuestBatches DailyQuestBatch[] // AI-generated daily quests
 
   @@map("users") // Table name in PostgreSQL
 }
@@ -76,6 +78,9 @@ model Quest {
 
   // Relationship: One quest can have many completions (for recurring quests)
   completions QuestCompletion[]
+  
+  // If this quest was created from an AI suggestion
+  aiQuest     AIQuest?
 
   @@index([userId]) // Index for faster queries by user
   @@map("quests")
@@ -127,4 +132,105 @@ enum QuestStatus {
   ACTIVE    // Quest is in progress
   COMPLETED // Quest is done
   ABANDONED // User gave up on quest
+}
+
+// ============================================
+// AI COACH MODELS
+// ============================================
+
+// User's preferences and goals for AI-generated quests
+model CoachProfile {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // What areas the user wants to focus on (stored as JSON array)
+  focusAreas    Category[] // e.g., [HEALTH, LEARNING]
+  
+  // User's self-described challenges
+  challenges    String?    // Free text: "I procrastinate", "No exercise routine"
+  
+  // How much time they have daily (in minutes)
+  dailyTimeMinutes Int @default(60)
+  
+  // Preferred intensity
+  intensity     CoachIntensity @default(BALANCED)
+  
+  // Coach personality style
+  coachStyle    CoachStyle @default(MOTIVATIONAL)
+  
+  // Has completed onboarding?
+  onboardingComplete Boolean @default(false)
+
+  // Relationship
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("coach_profiles")
+}
+
+// Daily AI-generated quest batch
+model DailyQuestBatch {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date // The date this batch is for
+  createdAt   DateTime @default(now())
+  
+  // AI-generated motivation message for the day
+  motivation  String?
+  
+  // The quests generated for this day
+  quests      AIQuest[]
+  
+  // Relationship
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date]) // One batch per user per day
+  @@index([userId])
+  @@map("daily_quest_batches")
+}
+
+// Individual AI-generated quest (linked to regular Quest when accepted)
+model AIQuest {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  reason      String   // Why the AI suggested this quest
+  xpReward    Int
+  difficulty  Difficulty
+  category    Category
+  
+  // Status of the AI suggestion
+  status      AIQuestStatus @default(PENDING)
+  
+  // If accepted, links to the actual Quest
+  questId     String?  @unique
+  quest       Quest?   @relation(fields: [questId], references: [id])
+  
+  // Relationship to batch
+  batchId     String
+  batch       DailyQuestBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId])
+  @@map("ai_quests")
+}
+
+enum CoachIntensity {
+  GENTLE    // 2-3 easy quests, lots of encouragement
+  BALANCED  // 3-4 mixed difficulty quests
+  INTENSE   // 4-5 challenging quests, push limits
+}
+
+enum CoachStyle {
+  MOTIVATIONAL  // "You've got this! Let's crush it!"
+  ANALYTICAL    // "Based on your patterns, I recommend..."
+  FRIENDLY      // "Hey! How about we try this today?"
+  DRILL_SERGEANT // "No excuses. Get it done."
+}
+
+enum AIQuestStatus {
+  PENDING   // Suggested, not yet acted on
+  ACCEPTED  // User accepted, Quest created
+  SKIPPED   // User skipped this suggestion
+  EXPIRED   // Day passed without action
 }

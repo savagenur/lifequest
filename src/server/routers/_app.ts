@@ -1,6 +1,7 @@
 import { router } from "../trpc";
 import { questRouter } from "./quest";
 import { userRouter } from "./user";
+import { coachRouter } from "./coach";
 
 /**
  * App Router
@@ -8,15 +9,14 @@ import { userRouter } from "./user";
  * This is the root router that combines all sub-routers.
  *
  * Structure:
- * - trpc.quest.getDaily()
- * - trpc.quest.create()
- * - trpc.quest.complete()
- * - trpc.user.getById()
- * - trpc.user.getStats()
+ * - trpc.quest.*    - Quest management
+ * - trpc.user.*     - User profile and stats
+ * - trpc.coach.*    - AI Coach features
  */
 export const appRouter = router({
   quest: questRouter,
   user: userRouter,
+  coach: coachRouter,
 });
 
 // Export the type for use in the frontend
