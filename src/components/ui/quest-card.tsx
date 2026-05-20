@@ -109,6 +109,7 @@ export function QuestCard({
         transition-all duration-200 hover:shadow-md
         ${isCompleted ? "opacity-60" : ""}
         ${hasExpandableContent ? "cursor-pointer" : ""}
+        ${showMenu ? "z-10" : ""}
       `}
     >
       {/* Category indicator */}
