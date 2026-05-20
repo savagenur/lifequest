@@ -15,7 +15,12 @@ function getXpForLevel(level: number): number {
   return level * 100;
 }
 
-export function Header({ userName, userLevel, userXp, avatarUrl }: HeaderProps) {
+export function Header({
+  userName,
+  userLevel,
+  userXp,
+  avatarUrl,
+}: HeaderProps) {
   const xpForCurrentLevel = getXpForLevel(userLevel);
   const xpForPreviousLevel = userLevel > 1 ? getXpForLevel(userLevel - 1) : 0;
   const xpInCurrentLevel = userXp - xpForPreviousLevel;
@@ -31,7 +36,6 @@ export function Header({ userName, userLevel, userXp, avatarUrl }: HeaderProps) 
             level={userLevel}
             size="md"
           />
-          
           <div className="flex-1 min-w-0">
             <h1 className="font-bold text-gray-900 dark:text-white truncate">
               {userName || "Adventurer"}

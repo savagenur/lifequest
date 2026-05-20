@@ -4,8 +4,12 @@ import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { generateVerificationToken, generatePasswordResetToken, getVerificationTokenByToken, getPasswordResetTokenByToken } from "./tokens";
 import { sendVerificationEmail, sendPasswordResetEmail } from "./mail";
-import { signIn } from "./auth";
+import { signIn, signOut } from "./auth";
 import { AuthError } from "next-auth";
+
+export async function logout() {
+  await signOut({ redirectTo: "/auth/signin" });
+}
 
 export async function register(data: {
   name: string;

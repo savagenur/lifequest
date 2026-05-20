@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { AvatarDisplay } from "@/components/ui/avatar-display";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Settings, LogOut, Trophy, Target, Zap, Calendar } from "lucide-react";
+import { logout } from "@/lib/auth-actions";
 
 export default function ProfilePage() {
   const { data: user } = trpc.user.getById.useQuery();
@@ -106,10 +107,12 @@ export default function ProfilePage() {
           <Settings className="w-5 h-5 text-gray-400" />
           <span className="text-gray-900 dark:text-white">Settings</span>
         </button>
-        <button className="w-full flex items-center gap-3 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-red-500">
-          <LogOut className="w-5 h-5" />
-          <span>Sign Out</span>
-        </button>
+        <form action={logout} className="w-full">
+          <button type="submit" className="w-full flex items-center gap-3 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-red-500">
+            <LogOut className="w-5 h-5" />
+            <span>Sign Out</span>
+          </button>
+        </form>
       </div>
     </div>
   );
