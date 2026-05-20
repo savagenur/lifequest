@@ -5,7 +5,6 @@ import { trpc } from "@/lib/trpc";
 import { Sparkles, ChevronRight, ChevronLeft } from "lucide-react";
 
 interface CoachOnboardingProps {
-  userId: string;
   onComplete: () => void;
 }
 
@@ -34,7 +33,7 @@ type FocusArea = typeof FOCUS_AREAS[number]["value"];
 type Intensity = typeof INTENSITIES[number]["value"];
 type CoachStyle = typeof COACH_STYLES[number]["value"];
 
-export function CoachOnboarding({ userId, onComplete }: CoachOnboardingProps) {
+export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
   const [step, setStep] = useState(1);
   const [focusAreas, setFocusAreas] = useState<FocusArea[]>([]);
   const [challenges, setChallenges] = useState("");
@@ -56,7 +55,6 @@ export function CoachOnboarding({ userId, onComplete }: CoachOnboardingProps) {
 
   const handleSubmit = () => {
     saveProfile.mutate({
-      userId,
       focusAreas,
       challenges: challenges || undefined,
       dailyTimeMinutes: dailyTime,

@@ -4,15 +4,12 @@ import { Header } from "@/components/layout/header";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { trpc } from "@/lib/trpc";
 
-// Hardcoded for now - will come from auth later
-const TEST_USER_ID = "cmpdg5bsj0000ufs974t9bdu1";
-
 export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: user } = trpc.user.getById.useQuery({ userId: TEST_USER_ID });
+  const { data: user } = trpc.user.getById.useQuery();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">

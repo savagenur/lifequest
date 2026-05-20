@@ -6,15 +6,10 @@ import { CoachOnboarding } from "@/components/coach/coach-onboarding";
 import { DailyCoachPanel } from "@/components/coach/daily-coach-panel";
 import { Settings, Sparkles } from "lucide-react";
 
-// Hardcoded for now - will come from auth later
-const TEST_USER_ID = "cmpdg5bsj0000ufs974t9bdu1";
-
 export default function CoachPage() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  const { data: profile, isLoading, refetch } = trpc.coach.getProfile.useQuery({
-    userId: TEST_USER_ID,
-  });
+  const { data: profile, isLoading, refetch } = trpc.coach.getProfile.useQuery();
 
   const needsOnboarding = !isLoading && !profile?.onboardingComplete;
 
@@ -52,7 +47,6 @@ export default function CoachPage() {
       {/* Show onboarding if needed or requested */}
       {(needsOnboarding || showOnboarding) && (
         <CoachOnboarding
-          userId={TEST_USER_ID}
           onComplete={() => {
             setShowOnboarding(false);
             refetch();
@@ -62,7 +56,7 @@ export default function CoachPage() {
 
       {/* Show daily coach panel if onboarded */}
       {profile?.onboardingComplete && !showOnboarding && (
-        <DailyCoachPanel userId={TEST_USER_ID} />
+        <DailyCoachPanel />
       )}
 
       {/* Profile Summary */}

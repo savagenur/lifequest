@@ -36,10 +36,14 @@ export async function register(data: {
   });
 
   // Generate verification token and send email
-  const verificationToken = await generateVerificationToken(email);
-  await sendVerificationEmail(email, verificationToken.token);
-
-  return { success: "Verification email sent!" };
+  try {
+    const verificationToken = await generateVerificationToken(email);
+    await sendVerificationEmail(email, verificationToken.token);
+    return { success: "Verification email sent! Check your inbox." };
+  } catch (error) {
+    console.error("Failed to send verification email:", error);
+    return { success: "Account created! Email verification may be delayed." };
+  }
 }
 
 export async function login(data: { email: string; password: string }) {

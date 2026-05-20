@@ -5,9 +5,6 @@ import { trpc } from "@/lib/trpc";
 import { QuestCard } from "@/components/ui/quest-card";
 import { Plus, Filter } from "lucide-react";
 
-// Hardcoded for now - will come from auth later
-const TEST_USER_ID = "cmpdg5bsj0000ufs974t9bdu1";
-
 const categories = [
   { value: "ALL", label: "All", icon: "🎯" },
   { value: "HEALTH", label: "Health", icon: "💪" },
@@ -39,9 +36,7 @@ export default function QuestsPage() {
     category: "PERSONAL",
   });
 
-  const { data: quests, refetch } = trpc.quest.getDaily.useQuery({
-    userId: TEST_USER_ID,
-  });
+  const { data: quests, refetch } = trpc.quest.getDaily.useQuery();
 
   const createQuest = trpc.quest.create.useMutation({
     onSuccess: () => {
@@ -156,7 +151,6 @@ export default function QuestsPage() {
               onClick={() => {
                 if (!newQuest.title.trim()) return;
                 createQuest.mutate({
-                  userId: TEST_USER_ID,
                   title: newQuest.title,
                   description: newQuest.description || undefined,
                   difficulty: newQuest.difficulty,
@@ -205,7 +199,7 @@ export default function QuestsPage() {
             status={quest.status}
             dueDate={quest.dueDate ? new Date(quest.dueDate) : null}
             onComplete={(id) =>
-              completeQuest.mutate({ questId: id, userId: TEST_USER_ID })
+              completeQuest.mutate({ questId: id })
             }
             isCompleting={completeQuest.isPending}
           />

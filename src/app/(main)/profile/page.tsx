@@ -5,17 +5,10 @@ import { AvatarDisplay } from "@/components/ui/avatar-display";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Settings, LogOut, Trophy, Target, Zap, Calendar } from "lucide-react";
 
-// Hardcoded for now - will come from auth later
-const TEST_USER_ID = "cmpdg5bsj0000ufs974t9bdu1";
-
 export default function ProfilePage() {
-  const { data: user } = trpc.user.getById.useQuery({
-    userId: TEST_USER_ID,
-  });
+  const { data: user } = trpc.user.getById.useQuery();
 
-  const { data: stats } = trpc.user.getStats.useQuery({
-    userId: TEST_USER_ID,
-  });
+  const { data: stats } = trpc.user.getStats.useQuery();
 
   const currentLevel = user?.level ?? 1;
   const currentXp = user?.xp ?? 0;

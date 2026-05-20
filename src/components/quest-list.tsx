@@ -13,13 +13,11 @@ import { useState } from "react";
  * - useMutation for creating/updating data
  * - Automatic refetching after mutations
  */
-export function QuestList({ userId }: { userId: string }) {
+export function QuestList() {
   const [newQuestTitle, setNewQuestTitle] = useState("");
 
   // Fetch quests - automatically handles loading, error, and data states
-  const { data: quests, isLoading, refetch } = trpc.quest.getDaily.useQuery({
-    userId,
-  });
+  const { data: quests, isLoading, refetch } = trpc.quest.getDaily.useQuery();
 
   // Create quest mutation
   const createQuest = trpc.quest.create.useMutation({
@@ -50,7 +48,6 @@ export function QuestList({ userId }: { userId: string }) {
           if (!newQuestTitle.trim()) return;
 
           createQuest.mutate({
-            userId,
             title: newQuestTitle,
             xpReward: 10,
             difficulty: "EASY",
@@ -90,7 +87,7 @@ export function QuestList({ userId }: { userId: string }) {
             </div>
             <button
               onClick={() =>
-                completeQuest.mutate({ questId: quest.id, userId })
+                completeQuest.mutate({ questId: quest.id })
               }
               disabled={completeQuest.isPending}
               className="px-3 py-1 bg-green-500 text-white text-sm rounded-lg disabled:opacity-50"

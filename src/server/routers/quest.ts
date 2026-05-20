@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { router, procedure } from "../trpc";
+import { router, protectedProcedure } from "../trpc";
 import { Difficulty, Category } from "@/generated/prisma/client";
 
 /**
@@ -19,16 +19,11 @@ export const questRouter = router({
    * Fetches all active quests for a user.
    * In a real app, you'd filter by date or "daily" flag.
    */
-  getDaily: procedure
-    .input(
-      z.object({
-        userId: z.string(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
+  getDaily: protectedProcedure
+    .query(async ({ ctx }) => {
       const quests = await ctx.db.quest.findMany({
         where: {
-          userId: input.userId,
+          userId: ctx.user.id,
           status: "ACTIVE",
         },
         orderBy: {
@@ -47,10 +42,9 @@ export const questRouter = router({
    * Zod validates the input — if invalid, tRPC returns an error automatically.
    * No manual validation needed!
    */
-  create: procedure
+  create: protectedProcedure
     .input(
       z.object({
-        userId: z.string(),
         title: z.string().min(1, "Title is required"),
         description: z.string().optional(),
         xpReward: z.number().int().positive().default(10),
@@ -70,7 +64,7 @@ export const questRouter = router({
           difficulty: input.difficulty as Difficulty,
           category: input.category as Category,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
-          userId: input.userId,
+          userId: ctx.user.id,
         },
       });
 
@@ -87,17 +81,17 @@ export const questRouter = router({
    * 2. Creates a QuestCompletion record
    * 3. Adds XP to the user
    */
-  complete: procedure
+  complete: protectedProcedure
     .input(
       z.object({
         questId: z.string(),
-        userId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       // First, get the quest to know how much XP to award
-      const quest = await ctx.db.quest.findUnique({
-        where: { id: input.questId },
+      // Also verify the quest belongs to the current user
+      const quest = await ctx.db.quest.findFirst({
+        where: { id: input.questId, userId: ctx.user.id },
       });
 
       if (!quest) {
@@ -121,14 +115,14 @@ export const questRouter = router({
           ctx.db.questCompletion.create({
             data: {
               questId: input.questId,
-              userId: input.userId,
+              userId: ctx.user.id,
               xpEarned: quest.xpReward,
             },
           }),
 
           // 3. Add XP to user
           ctx.db.user.update({
-            where: { id: input.userId },
+            where: { id: ctx.user.id },
             data: {
               xp: { increment: quest.xpReward },
             },

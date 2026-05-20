@@ -6,17 +6,10 @@ import { QuestCard } from "@/components/ui/quest-card";
 import { Target, Flame, Trophy, Zap } from "lucide-react";
 import Link from "next/link";
 
-// Hardcoded for now - will come from auth later
-const TEST_USER_ID = "cmpdg5bsj0000ufs974t9bdu1";
-
 export default function DashboardPage() {
-  const { data: stats } = trpc.user.getStats.useQuery({
-    userId: TEST_USER_ID,
-  });
+  const { data: stats } = trpc.user.getStats.useQuery();
 
-  const { data: quests, refetch: refetchQuests } = trpc.quest.getDaily.useQuery({
-    userId: TEST_USER_ID,
-  });
+  const { data: quests, refetch: refetchQuests } = trpc.quest.getDaily.useQuery();
 
   const completeQuest = trpc.quest.complete.useMutation({
     onSuccess: () => {
@@ -95,7 +88,7 @@ export default function DashboardPage() {
               status={quest.status}
               dueDate={quest.dueDate ? new Date(quest.dueDate) : null}
               onComplete={(id) =>
-                completeQuest.mutate({ questId: id, userId: TEST_USER_ID })
+                completeQuest.mutate({ questId: id })
               }
               isCompleting={completeQuest.isPending}
             />

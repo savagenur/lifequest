@@ -4,14 +4,8 @@ import { trpc } from "@/lib/trpc";
 import { AIQuestCard } from "./ai-quest-card";
 import { Sparkles, RefreshCw, CheckCheck } from "lucide-react";
 
-interface DailyCoachPanelProps {
-  userId: string;
-}
-
-export function DailyCoachPanel({ userId }: DailyCoachPanelProps) {
-  const { data: batch, refetch, isLoading } = trpc.coach.getTodayQuests.useQuery({
-    userId,
-  });
+export function DailyCoachPanel() {
+  const { data: batch, refetch, isLoading } = trpc.coach.getTodayQuests.useQuery();
 
   const generateQuests = trpc.coach.generateQuests.useMutation({
     onSuccess: () => refetch(),
@@ -66,7 +60,7 @@ export function DailyCoachPanel({ userId }: DailyCoachPanelProps) {
         )}
         
         <button
-          onClick={() => generateQuests.mutate({ userId })}
+          onClick={() => generateQuests.mutate()}
           disabled={generateQuests.isPending}
           className="w-full py-3 bg-white text-purple-600 font-medium rounded-lg hover:bg-purple-50 disabled:opacity-50 flex items-center justify-center gap-2"
         >
@@ -102,7 +96,7 @@ export function DailyCoachPanel({ userId }: DailyCoachPanelProps) {
       {/* Accept All button */}
       {pendingQuests.length > 1 && (
         <button
-          onClick={() => acceptAll.mutate({ userId })}
+          onClick={() => acceptAll.mutate()}
           disabled={acceptAll.isPending}
           className="w-full py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 font-medium rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 disabled:opacity-50 flex items-center justify-center gap-2"
         >
@@ -124,7 +118,7 @@ export function DailyCoachPanel({ userId }: DailyCoachPanelProps) {
             difficulty={quest.difficulty}
             category={quest.category}
             status={quest.status}
-            onAccept={(id) => acceptQuest.mutate({ aiQuestId: id, userId })}
+            onAccept={(id) => acceptQuest.mutate({ aiQuestId: id })}
             onSkip={(id) => skipQuest.mutate({ aiQuestId: id })}
             isLoading={acceptQuest.isPending || skipQuest.isPending}
           />

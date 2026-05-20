@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { router, procedure } from "../trpc";
+import { router, protectedProcedure } from "../trpc";
 import { generateDailyQuests } from "@/lib/ai-coach";
 import type { Category } from "@/generated/prisma/client";
 
@@ -14,11 +14,10 @@ export const coachRouter = router({
    * -----------------
    * Fetches the user's coach preferences. Returns null if not set up.
    */
-  getProfile: procedure
-    .input(z.object({ userId: z.string() }))
-    .query(async ({ ctx, input }) => {
+  getProfile: protectedProcedure
+    .query(async ({ ctx }) => {
       return ctx.db.coachProfile.findUnique({
-        where: { userId: input.userId },
+        where: { userId: ctx.user.id },
       });
     }),
 
@@ -27,10 +26,9 @@ export const coachRouter = router({
    * ---------------------------
    * Sets up or updates the user's AI coach preferences.
    */
-  saveProfile: procedure
+  saveProfile: protectedProcedure
     .input(
       z.object({
-        userId: z.string(),
         focusAreas: z.array(z.enum(["HEALTH", "LEARNING", "CAREER", "PERSONAL", "FINANCE"])),
         challenges: z.string().optional(),
         dailyTimeMinutes: z.number().int().min(15).max(480).default(60),
@@ -40,9 +38,9 @@ export const coachRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       return ctx.db.coachProfile.upsert({
-        where: { userId: input.userId },
+        where: { userId: ctx.user.id },
         create: {
-          userId: input.userId,
+          userId: ctx.user.id,
           focusAreas: input.focusAreas,
           challenges: input.challenges,
           dailyTimeMinutes: input.dailyTimeMinutes,
@@ -66,16 +64,15 @@ export const coachRouter = router({
    * ---------------------
    * Fetches today's AI-generated quest batch, or generates if not exists.
    */
-  getTodayQuests: procedure
-    .input(z.object({ userId: z.string() }))
-    .query(async ({ ctx, input }) => {
+  getTodayQuests: protectedProcedure
+    .query(async ({ ctx }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
-            userId: input.userId,
+            userId: ctx.user.id,
             date: today,
           },
         },
@@ -96,9 +93,8 @@ export const coachRouter = router({
    * ---------------------
    * Generates new AI quests for today. Only works if no batch exists for today.
    */
-  generateQuests: procedure
-    .input(z.object({ userId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+  generateQuests: protectedProcedure
+    .mutation(async ({ ctx }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -106,7 +102,7 @@ export const coachRouter = router({
       const existingBatch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
-            userId: input.userId,
+            userId: ctx.user.id,
             date: today,
           },
         },
@@ -118,7 +114,7 @@ export const coachRouter = router({
 
       // Get user context for AI
       const user = await ctx.db.user.findUnique({
-        where: { id: input.userId },
+        where: { id: ctx.user.id },
         include: {
           coachProfile: true,
           questCompletions: {
@@ -139,7 +135,7 @@ export const coachRouter = router({
       // Get quest counts by category
       const questsByCategory = await ctx.db.quest.groupBy({
         by: ["category"],
-        where: { userId: input.userId, status: "COMPLETED" },
+        where: { userId: ctx.user.id, status: "COMPLETED" },
         _count: true,
       });
 
@@ -179,7 +175,7 @@ export const coachRouter = router({
       // Create batch with quests
       const batch = await ctx.db.dailyQuestBatch.create({
         data: {
-          userId: input.userId,
+          userId: ctx.user.id,
           date: today,
           motivation: aiResponse.motivation,
           quests: {
@@ -207,11 +203,10 @@ export const coachRouter = router({
    * ---------------
    * Accepts an AI-suggested quest and creates a real Quest from it.
    */
-  acceptQuest: procedure
+  acceptQuest: protectedProcedure
     .input(
       z.object({
         aiQuestId: z.string(),
-        userId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -231,7 +226,7 @@ export const coachRouter = router({
             xpReward: aiQuest.xpReward,
             difficulty: aiQuest.difficulty,
             category: aiQuest.category,
-            userId: input.userId,
+            userId: ctx.user.id,
           },
         }),
         ctx.db.aIQuest.update({
@@ -254,7 +249,7 @@ export const coachRouter = router({
    * -------------
    * Marks an AI-suggested quest as skipped.
    */
-  skipQuest: procedure
+  skipQuest: protectedProcedure
     .input(z.object({ aiQuestId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.aIQuest.update({
@@ -268,16 +263,15 @@ export const coachRouter = router({
    * -----------------
    * Accepts all pending AI quests from today's batch.
    */
-  acceptAllQuests: procedure
-    .input(z.object({ userId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+  acceptAllQuests: protectedProcedure
+    .mutation(async ({ ctx }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
-            userId: input.userId,
+            userId: ctx.user.id,
             date: today,
           },
         },
@@ -300,7 +294,7 @@ export const coachRouter = router({
             xpReward: aiQuest.xpReward,
             difficulty: aiQuest.difficulty,
             category: aiQuest.category,
-            userId: input.userId,
+            userId: ctx.user.id,
           },
         });
 

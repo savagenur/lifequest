@@ -5,9 +5,6 @@ import { trpc } from "@/lib/trpc";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Calendar, TrendingUp, Award, Clock } from "lucide-react";
 
-// Hardcoded for now - will come from auth later
-const TEST_USER_ID = "cmpdg5bsj0000ufs974t9bdu1";
-
 const categoryColors = {
   HEALTH: "red",
   LEARNING: "blue",
@@ -25,13 +22,9 @@ const categoryIcons = {
 };
 
 export default function ProgressPage() {
-  const { data: stats } = trpc.user.getStats.useQuery({
-    userId: TEST_USER_ID,
-  });
+  const { data: stats } = trpc.user.getStats.useQuery();
 
-  const { data: user } = trpc.user.getById.useQuery({
-    userId: TEST_USER_ID,
-  });
+  const { data: user } = trpc.user.getById.useQuery();
 
   // Calculate days since account creation
   const daysSinceStart = useMemo(() => {

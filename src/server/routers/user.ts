@@ -1,5 +1,4 @@
-import { z } from "zod/v4";
-import { router, procedure } from "../trpc";
+import { router, protectedProcedure } from "../trpc";
 
 /**
  * User Router
@@ -12,15 +11,10 @@ export const userRouter = router({
    * --------------
    * Fetches a user with their stats, avatar, and recent completions.
    */
-  getById: procedure
-    .input(
-      z.object({
-        userId: z.string(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
+  getById: protectedProcedure
+    .query(async ({ ctx }) => {
       const user = await ctx.db.user.findUnique({
-        where: { id: input.userId },
+        where: { id: ctx.user.id },
         include: {
           avatar: true,
           questCompletions: {
@@ -41,25 +35,21 @@ export const userRouter = router({
    * --------------
    * Fetches aggregated stats for the user.
    */
-  getStats: procedure
-    .input(
-      z.object({
-        userId: z.string(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
+  getStats: protectedProcedure
+    .query(async ({ ctx }) => {
+      const userId = ctx.user.id;
       const [user, totalQuests, completedQuests, totalXpEarned] = await Promise.all([
         ctx.db.user.findUnique({
-          where: { id: input.userId },
+          where: { id: userId },
         }),
         ctx.db.quest.count({
-          where: { userId: input.userId },
+          where: { userId },
         }),
         ctx.db.quest.count({
-          where: { userId: input.userId, status: "COMPLETED" },
+          where: { userId, status: "COMPLETED" },
         }),
         ctx.db.questCompletion.aggregate({
-          where: { userId: input.userId },
+          where: { userId },
           _sum: { xpEarned: true },
         }),
       ]);
@@ -67,7 +57,7 @@ export const userRouter = router({
       // Count quests by category
       const questsByCategory = await ctx.db.quest.groupBy({
         by: ["category"],
-        where: { userId: input.userId, status: "COMPLETED" },
+        where: { userId, status: "COMPLETED" },
         _count: true,
       });
 
