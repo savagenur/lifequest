@@ -313,4 +313,50 @@ export const questRouter = router({
         reason: quest.aiQuest?.reason ?? null,
       }));
     }),
+
+  /**
+   * GET QUESTS BY DATE
+   * ------------------
+   * Fetches quests created on a specific date.
+   * Used for date-based navigation in the quests page.
+   */
+  getByDate: protectedProcedure
+    .input(
+      z.object({
+        date: z.string(), // ISO date string (YYYY-MM-DD)
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Parse date parts to avoid timezone issues
+      // input.date is "YYYY-MM-DD" format
+      const [year, month, day] = input.date.split("-").map(Number);
+      const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
+      const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999);
+
+      const quests = await ctx.db.quest.findMany({
+        where: {
+          userId: ctx.user.id,
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        include: {
+          aiQuest: {
+            select: {
+              reason: true,
+            },
+          },
+        },
+        orderBy: [
+          { status: "asc" },
+          { createdAt: "desc" },
+        ],
+      });
+
+      return quests.map((quest) => ({
+        ...quest,
+        reason: quest.aiQuest?.reason ?? null,
+      }));
+    }),
 });

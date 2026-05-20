@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { QuestCard } from "@/components/ui/quest-card";
-import { Plus, Filter, X, ChevronDown, Trophy } from "lucide-react";
+import { Plus, X, ChevronDown, Trophy } from "lucide-react";
 
 const categories = [
   { value: "ALL", label: "All", icon: "🎯" },
@@ -13,6 +13,46 @@ const categories = [
   { value: "PERSONAL", label: "Personal", icon: "🌟" },
   { value: "FINANCE", label: "Finance", icon: "💰" },
 ] as const;
+
+// Generate dates for 2 months back and 2 months forward
+function generateDateRange(): Date[] {
+  const dates: Date[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // 2 months back
+  const startDate = new Date(today);
+  startDate.setMonth(startDate.getMonth() - 2);
+  
+  // 2 months forward
+  const endDate = new Date(today);
+  endDate.setMonth(endDate.getMonth() + 2);
+  
+  const current = new Date(startDate);
+  while (current <= endDate) {
+    dates.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return dates;
+}
+
+function formatDateKey(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+function getDayName(date: Date): string {
+  return date.toLocaleDateString("en-US", { weekday: "short" }).slice(0, 3).toUpperCase();
+}
+
+function isToday(date: Date): boolean {
+  const today = new Date();
+  return (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  );
+}
 
 const difficulties = [
   { value: "EASY", label: "Easy", xp: 10 },
@@ -36,16 +76,39 @@ const defaultQuestForm: QuestFormData = {
 };
 
 export default function QuestsPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingQuestId, setEditingQuestId] = useState<string | null>(null);
   const [questForm, setQuestForm] = useState<QuestFormData>(defaultQuestForm);
   const [showCompletedSection, setShowCompletedSection] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
+  const dateScrollRef = useRef<HTMLDivElement>(null);
+  const todayRef = useRef<HTMLButtonElement>(null);
 
   const utils = trpc.useUtils();
 
-  // Use the new query that includes today's completed quests
-  const { data: quests, refetch } = trpc.quest.getAllWithTodayCompleted.useQuery();
+  // Generate date range (memoized to avoid recalculation)
+  const dateRange = useMemo(() => generateDateRange(), []);
+
+  // Fetch quests for selected date
+  const { data: quests, refetch } = trpc.quest.getByDate.useQuery({
+    date: formatDateKey(selectedDate),
+  });
+
+  // Scroll to today's date on mount
+  useEffect(() => {
+    if (todayRef.current && dateScrollRef.current) {
+      const container = dateScrollRef.current;
+      const todayButton = todayRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const buttonRect = todayButton.getBoundingClientRect();
+      const scrollLeft = buttonRect.left - containerRect.left - containerRect.width / 2 + buttonRect.width / 2;
+      container.scrollLeft += scrollLeft;
+    }
+  }, []);
 
   const createQuest = trpc.quest.create.useMutation({
     onSuccess: () => {
@@ -84,15 +147,11 @@ export default function QuestsPage() {
   });
 
   // Separate active and completed quests
-  const filteredByCategory = quests?.filter(
-    (q) => selectedCategory === "ALL" || q.category === selectedCategory
-  );
-
-  const activeQuests = filteredByCategory
+  const activeQuests = quests
     ?.filter((q) => q.status === "ACTIVE")
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const completedQuests = filteredByCategory
+  const completedQuests = quests
     ?.filter((q) => q.status === "COMPLETED")
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
@@ -122,115 +181,146 @@ export default function QuestsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-text-primary">Quests</h2>
-          <p className="text-text-muted">
-            {activeCount} active{completedTodayCount > 0 ? `, ${completedTodayCount} completed today` : ""}
-          </p>
-        </div>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          <span>New Quest</span>
-        </button>
+    <div className="pb-24 space-y-4">
+      {/* Date Navigation Widget */}
+      <div
+        ref={dateScrollRef}
+        className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {dateRange.map((date) => {
+          const dateKey = formatDateKey(date);
+          const isTodayDate = isToday(date);
+          const isSelected = formatDateKey(selectedDate) === dateKey;
+
+          return (
+            <button
+              key={dateKey}
+              ref={isTodayDate ? todayRef : null}
+              onClick={() => setSelectedDate(date)}
+              className={`flex flex-col items-center min-w-[52px] px-2 py-2 rounded-xl transition-all ${
+                isSelected
+                  ? "bg-primary text-white shadow-md"
+                  : isTodayDate
+                  ? "bg-primary-light text-primary border border-primary"
+                  : "bg-surface text-text-secondary border border-border hover:border-primary/50"
+              }`}
+            >
+              <span className={`text-xs font-medium ${isSelected ? "text-white/80" : "text-text-muted"}`}>
+                {getDayName(date)}
+              </span>
+              <span className={`text-lg font-bold ${isSelected ? "text-white" : ""}`}>
+                {date.getDate()}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Create Quest Form */}
+      {/* Create Quest Dialog */}
       {showCreateForm && (
-        <div className="bg-surface rounded-xl p-4 border border-border space-y-4">
-          <h3 className="font-semibold text-text-primary">Create New Quest</h3>
-          
-          <input
-            type="text"
-            placeholder="Quest title..."
-            value={questForm.title}
-            onChange={(e) => setQuestForm({ ...questForm, title: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted"
-          />
-          
-          <textarea
-            placeholder="Description (optional)"
-            value={questForm.description}
-            onChange={(e) => setQuestForm({ ...questForm, description: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted resize-none"
-            rows={2}
-          />
-
-          {/* Category Selection */}
-          <div>
-            <label className="text-sm text-text-muted mb-2 block">Category</label>
-            <div className="flex flex-wrap gap-2">
-              {categories.slice(1).map((cat) => (
-                <button
-                  key={cat.value}
-                  onClick={() => setQuestForm({ ...questForm, category: cat.value as typeof questForm.category })}
-                  className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-colors ${
-                    questForm.category === cat.value
-                      ? "bg-primary-light text-primary ring-1 ring-primary"
-                      : "bg-surface-secondary text-text-secondary"
-                  }`}
-                >
-                  <span>{cat.icon}</span>
-                  <span>{cat.label}</span>
-                </button>
-              ))}
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-xl p-4 w-full max-w-md space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-text-primary">Create New Quest</h3>
+              <button
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setQuestForm(defaultQuestForm);
+                }}
+                className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-          </div>
+            
+            <input
+              type="text"
+              placeholder="Quest title..."
+              value={questForm.title}
+              onChange={(e) => setQuestForm({ ...questForm, title: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted"
+            />
+            
+            <textarea
+              placeholder="Description (optional)"
+              value={questForm.description}
+              onChange={(e) => setQuestForm({ ...questForm, description: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted resize-none"
+              rows={2}
+            />
 
-          {/* Difficulty Selection */}
-          <div>
-            <label className="text-sm text-text-muted mb-2 block">
-              Difficulty (+{selectedDifficulty?.xp} XP)
-            </label>
-            <div className="flex gap-2">
-              {difficulties.map((diff) => (
-                <button
-                  key={diff.value}
-                  onClick={() => setQuestForm({ ...questForm, difficulty: diff.value })}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    questForm.difficulty === diff.value
-                      ? "bg-primary text-white"
-                      : "bg-surface-secondary text-text-secondary"
-                  }`}
-                >
-                  {diff.label}
-                </button>
-              ))}
+            {/* Category Selection */}
+            <div>
+              <label className="text-sm text-text-muted mb-2 block">Category</label>
+              <div className="flex flex-wrap gap-2">
+                {categories.slice(1).map((cat) => (
+                  <button
+                    key={cat.value}
+                    onClick={() => setQuestForm({ ...questForm, category: cat.value as typeof questForm.category })}
+                    className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-1.5 transition-colors ${
+                      questForm.category === cat.value
+                        ? "bg-primary-light text-primary ring-1 ring-primary"
+                        : "bg-surface-secondary text-text-secondary"
+                    }`}
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Submit */}
-          <div className="flex gap-2 pt-2">
-            <button
-              onClick={() => {
-                setShowCreateForm(false);
-                setQuestForm(defaultQuestForm);
-              }}
-              className="flex-1 px-4 py-2 rounded-lg border border-border text-text-secondary hover:bg-surface-hover"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                if (!questForm.title.trim()) return;
-                createQuest.mutate({
-                  title: questForm.title,
-                  description: questForm.description || undefined,
-                  difficulty: questForm.difficulty,
-                  category: questForm.category,
-                  xpReward: selectedDifficulty?.xp ?? 10,
-                });
-              }}
-              disabled={!questForm.title.trim() || createQuest.isPending}
-              className="flex-1 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {createQuest.isPending ? "Creating..." : "Create Quest"}
-            </button>
+            {/* Difficulty Selection */}
+            <div>
+              <label className="text-sm text-text-muted mb-2 block">
+                Difficulty (+{selectedDifficulty?.xp} XP)
+              </label>
+              <div className="flex gap-2">
+                {difficulties.map((diff) => (
+                  <button
+                    key={diff.value}
+                    onClick={() => setQuestForm({ ...questForm, difficulty: diff.value })}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      questForm.difficulty === diff.value
+                        ? "bg-primary text-white"
+                        : "bg-surface-secondary text-text-secondary"
+                    }`}
+                  >
+                    {diff.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setQuestForm(defaultQuestForm);
+                }}
+                className="flex-1 px-4 py-2 rounded-lg border border-border text-text-secondary hover:bg-surface-hover"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (!questForm.title.trim()) return;
+                  createQuest.mutate({
+                    title: questForm.title,
+                    description: questForm.description || undefined,
+                    difficulty: questForm.difficulty,
+                    category: questForm.category,
+                    xpReward: selectedDifficulty?.xp ?? 10,
+                  });
+                }}
+                disabled={!questForm.title.trim() || createQuest.isPending}
+                className="flex-1 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {createQuest.isPending ? "Creating..." : "Create Quest"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -344,24 +434,6 @@ export default function QuestsPage() {
         </div>
       )}
 
-      {/* Category Filter */}
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
-        {categories.map((cat) => (
-          <button
-            key={cat.value}
-            onClick={() => setSelectedCategory(cat.value)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              selectedCategory === cat.value
-                ? "bg-primary text-white"
-                : "bg-surface text-text-secondary border border-border"
-            }`}
-          >
-            <span className="mr-1.5">{cat.icon}</span>
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
       {/* Active Quests */}
       <div className="space-y-3">
         {activeQuests?.map((quest) => (
@@ -388,17 +460,17 @@ export default function QuestsPage() {
 
         {activeCount === 0 && completedTodayCount === 0 && (
           <div className="text-center py-12 bg-surface rounded-xl border border-border">
-            <Filter className="w-12 h-12 mx-auto text-text-muted mb-3" />
+            <Plus className="w-12 h-12 mx-auto text-text-muted mb-3" />
             <p className="text-text-muted">
-              {selectedCategory === "ALL"
-                ? "No quests yet. Create your first quest!"
-                : `No ${selectedCategory.toLowerCase()} quests`}
+              {isToday(selectedDate)
+                ? "No quests for today. Tap + to create one!"
+                : `No quests for ${selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
             </p>
           </div>
         )}
       </div>
 
-      {/* Completed Today Section - Collapsible */}
+      {/* Completed Section - Collapsible */}
       {completedTodayCount > 0 && (
         <div className="mt-6">
           <button
@@ -410,7 +482,7 @@ export default function QuestsPage() {
                 <Trophy className="w-4 h-4 text-warning" />
               </div>
               <span className="font-medium text-text-primary">
-                Completed Today ({completedTodayCount})
+                Completed ({completedTodayCount})
               </span>
             </div>
             <ChevronDown 
@@ -447,6 +519,15 @@ export default function QuestsPage() {
           )}
         </div>
       )}
+
+      {/* Floating Add Button */}
+      <button
+        onClick={() => setShowCreateForm(true)}
+        className="fixed right-4 bottom-24 w-14 h-14 bg-primary text-white rounded-full shadow-lg hover:bg-primary-hover transition-all hover:scale-105 flex items-center justify-center z-40"
+        aria-label="Create new quest"
+      >
+        <Plus className="w-7 h-7" />
+      </button>
     </div>
   );
 }
