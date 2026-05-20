@@ -7,7 +7,7 @@ import { DailyCoachPanel } from "@/components/coach/daily-coach-panel";
 import { Settings, Sparkles } from "lucide-react";
 
 export default function CoachPage() {
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const { data: profile, isLoading, refetch } = trpc.coach.getProfile.useQuery();
 
@@ -34,33 +34,47 @@ export default function CoachPage() {
             Personalized quests powered by AI
           </p>
         </div>
-        {profile && (
+        {profile?.onboardingComplete && (
           <button
-            onClick={() => setShowOnboarding(true)}
+            onClick={() => setShowSettings(true)}
             className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+            title="Edit AI Coach Settings"
           >
             <Settings className="w-5 h-5" />
           </button>
         )}
       </div>
 
-      {/* Show onboarding if needed or requested */}
-      {(needsOnboarding || showOnboarding) && (
+      {/* Mandatory onboarding for first-time users - NO close button */}
+      {needsOnboarding && (
         <CoachOnboarding
           onComplete={() => {
-            setShowOnboarding(false);
             refetch();
           }}
+          showCloseButton={false}
+        />
+      )}
+
+      {/* Settings dialog when clicking settings icon - WITH close button and pre-filled data */}
+      {showSettings && profile && (
+        <CoachOnboarding
+          onComplete={() => {
+            setShowSettings(false);
+            refetch();
+          }}
+          onClose={() => setShowSettings(false)}
+          showCloseButton={true}
+          initialData={profile}
         />
       )}
 
       {/* Show daily coach panel if onboarded */}
-      {profile?.onboardingComplete && !showOnboarding && (
+      {profile?.onboardingComplete && !showSettings && (
         <DailyCoachPanel />
       )}
 
       {/* Profile Summary */}
-      {profile && !showOnboarding && (
+      {profile && !showSettings && (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
           <h3 className="font-medium text-gray-900 dark:text-white mb-3">Your Coach Settings</h3>
           <div className="grid grid-cols-2 gap-3 text-sm">

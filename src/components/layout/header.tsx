@@ -10,21 +10,27 @@ interface HeaderProps {
   avatarUrl?: string | null;
 }
 
-// XP required for each level (simple formula: level * 100)
-function getXpForLevel(level: number): number {
-  return level * 100;
+// XP required per level (100 XP per level)
+const XP_PER_LEVEL = 100;
+
+// Calculate actual level from XP (level up every 100 XP)
+function calculateLevel(xp: number): number {
+  return Math.floor(xp / XP_PER_LEVEL) + 1;
+}
+
+// Calculate XP progress within current level
+function calculateLevelProgress(xp: number): number {
+  return xp % XP_PER_LEVEL;
 }
 
 export function Header({
   userName,
-  userLevel,
   userXp,
   avatarUrl,
 }: HeaderProps) {
-  const xpForCurrentLevel = getXpForLevel(userLevel);
-  const xpForPreviousLevel = userLevel > 1 ? getXpForLevel(userLevel - 1) : 0;
-  const xpInCurrentLevel = userXp - xpForPreviousLevel;
-  const xpNeededForLevel = xpForCurrentLevel - xpForPreviousLevel;
+  // Calculate level from XP to ensure consistency
+  const actualLevel = calculateLevel(userXp);
+  const xpInCurrentLevel = calculateLevelProgress(userXp);
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40">
@@ -33,7 +39,7 @@ export function Header({
           <AvatarDisplay
             imageUrl={avatarUrl}
             name={userName}
-            level={userLevel}
+            level={actualLevel}
             size="md"
           />
           <div className="flex-1 min-w-0">
@@ -43,8 +49,8 @@ export function Header({
             <div className="mt-1">
               <ProgressBar
                 value={xpInCurrentLevel}
-                max={xpNeededForLevel}
-                label={`Level ${userLevel}`}
+                max={XP_PER_LEVEL}
+                label={`Level ${actualLevel}`}
                 size="sm"
                 color="purple"
               />

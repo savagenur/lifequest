@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Swords, TrendingUp, User, Sparkles } from "lucide-react";
+import { Swords, TrendingUp, User, Sparkles } from "lucide-react";
 
 const navItems = [
-  { href: "/", icon: LayoutDashboard, label: "Home" },
   { href: "/quests", icon: Swords, label: "Quests" },
   { href: "/coach", icon: Sparkles, label: "Coach" },
   { href: "/progress", icon: TrendingUp, label: "Progress" },

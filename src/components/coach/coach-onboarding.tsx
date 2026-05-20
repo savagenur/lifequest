@@ -2,10 +2,21 @@
 
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { Sparkles, ChevronRight, ChevronLeft } from "lucide-react";
+import { Sparkles, ChevronRight, ChevronLeft, X } from "lucide-react";
+
+interface CoachProfile {
+  focusAreas: string[];
+  challenges?: string | null;
+  dailyTimeMinutes: number;
+  intensity: string;
+  coachStyle: string;
+}
 
 interface CoachOnboardingProps {
   onComplete: () => void;
+  onClose?: () => void;
+  showCloseButton?: boolean;
+  initialData?: CoachProfile | null;
 }
 
 const FOCUS_AREAS = [
@@ -33,13 +44,19 @@ type FocusArea = typeof FOCUS_AREAS[number]["value"];
 type Intensity = typeof INTENSITIES[number]["value"];
 type CoachStyle = typeof COACH_STYLES[number]["value"];
 
-export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
+export function CoachOnboarding({ onComplete, onClose, showCloseButton = false, initialData }: CoachOnboardingProps) {
   const [step, setStep] = useState(1);
-  const [focusAreas, setFocusAreas] = useState<FocusArea[]>([]);
-  const [challenges, setChallenges] = useState("");
-  const [dailyTime, setDailyTime] = useState(60);
-  const [intensity, setIntensity] = useState<Intensity>("BALANCED");
-  const [coachStyle, setCoachStyle] = useState<CoachStyle>("MOTIVATIONAL");
+  const [focusAreas, setFocusAreas] = useState<FocusArea[]>(
+    (initialData?.focusAreas as FocusArea[]) || []
+  );
+  const [challenges, setChallenges] = useState(initialData?.challenges || "");
+  const [dailyTime, setDailyTime] = useState(initialData?.dailyTimeMinutes || 60);
+  const [intensity, setIntensity] = useState<Intensity>(
+    (initialData?.intensity as Intensity) || "BALANCED"
+  );
+  const [coachStyle, setCoachStyle] = useState<CoachStyle>(
+    (initialData?.coachStyle as CoachStyle) || "MOTIVATIONAL"
+  );
 
   const saveProfile = trpc.coach.saveProfile.useMutation({
     onSuccess: () => {
@@ -72,10 +89,19 @@ export function CoachOnboarding({ onComplete }: CoachOnboardingProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700 relative">
+          {showCloseButton && onClose && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
           <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
             <Sparkles className="w-5 h-5" />
-            <span className="font-medium">AI Coach Setup</span>
+            <span className="font-medium">{initialData ? "Edit AI Coach Settings" : "AI Coach Setup"}</span>
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
             {step === 1 && "What do you want to improve?"}

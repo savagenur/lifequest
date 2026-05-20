@@ -10,8 +10,14 @@ export function DailyCoachPanel() {
   const generateQuests = trpc.coach.generateQuests.useMutation({
     onSuccess: () => refetch(),
     onError: (error) => {
-      // Error is already handled by the UI component
       console.error("Failed to generate quests:", error);
+    },
+  });
+
+  const regenerateQuests = trpc.coach.regenerateQuests.useMutation({
+    onSuccess: () => refetch(),
+    onError: (error) => {
+      console.error("Failed to regenerate quests:", error);
     },
   });
 
@@ -23,12 +29,20 @@ export function DailyCoachPanel() {
     onSuccess: () => refetch(),
   });
 
+  const undoSkipQuest = trpc.coach.undoSkipQuest.useMutation({
+    onSuccess: () => refetch(),
+  });
+
   const acceptAll = trpc.coach.acceptAllQuests.useMutation({
     onSuccess: () => refetch(),
   });
 
   const pendingQuests = batch?.quests.filter((q) => q.status === "PENDING") || [];
+  const skippedQuests = batch?.quests.filter((q) => q.status === "SKIPPED") || [];
   const hasGenerated = !!batch;
+  const regenerationCount = batch?.regenerationCount ?? 0;
+  const regenerationsLeft = 1 - regenerationCount; // Max 1 regeneration (total 2 generations)
+  const canRegenerate = hasGenerated && regenerationsLeft > 0;
 
   if (isLoading) {
     return (
@@ -84,12 +98,33 @@ export function DailyCoachPanel() {
     <div className="space-y-4">
       {/* Header with motivation */}
       <div className="bg-linear-to-br from-purple-500 to-blue-500 rounded-xl p-4 text-white">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-5 h-5" />
-          <span className="font-medium">AI Coach</span>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5" />
+            <span className="font-medium">AI Coach</span>
+          </div>
+          {/* Regenerate button - always visible */}
+          <button
+            onClick={() => regenerateQuests.mutate()}
+            disabled={regenerateQuests.isPending || !canRegenerate}
+            className="px-3 py-1 text-xs bg-white/20 hover:bg-white/30 rounded-lg transition-colors flex items-center gap-1 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3 h-3 ${regenerateQuests.isPending ? "animate-spin" : ""}`} />
+            {regenerateQuests.isPending 
+              ? "Generating..." 
+              : regenerationsLeft > 0 
+                ? `More quests (${regenerationsLeft} left)` 
+                : "No regenerations left"}
+          </button>
         </div>
         {batch.motivation && (
           <p className="text-purple-100">{batch.motivation}</p>
+        )}
+        {/* Regeneration error */}
+        {regenerateQuests.error && (
+          <div className="mt-2 p-2 bg-red-500/20 rounded-lg text-red-100 text-xs">
+            {regenerateQuests.error.message}
+          </div>
         )}
       </div>
 
@@ -120,7 +155,8 @@ export function DailyCoachPanel() {
             status={quest.status}
             onAccept={(id) => acceptQuest.mutate({ aiQuestId: id })}
             onSkip={(id) => skipQuest.mutate({ aiQuestId: id })}
-            isLoading={acceptQuest.isPending || skipQuest.isPending}
+            onUndoSkip={(id) => undoSkipQuest.mutate({ aiQuestId: id })}
+            isLoading={acceptQuest.isPending || skipQuest.isPending || undoSkipQuest.isPending}
           />
         ))}
       </div>
@@ -129,7 +165,14 @@ export function DailyCoachPanel() {
       {pendingQuests.length === 0 && batch.quests.length > 0 && (
         <div className="text-center py-4 text-gray-500 dark:text-gray-400">
           <p>All quests processed for today!</p>
-          <p className="text-sm">Check back tomorrow for new suggestions.</p>
+          {skippedQuests.length > 0 && (
+            <p className="text-sm">You can undo skipped quests if you change your mind.</p>
+          )}
+          {canRegenerate && (
+            <p className="text-sm mt-1">
+              Or generate more suggestions ({regenerationsLeft} regeneration{regenerationsLeft > 1 ? "s" : ""} left).
+            </p>
+          )}
         </div>
       )}
     </div>

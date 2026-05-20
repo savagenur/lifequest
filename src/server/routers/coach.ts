@@ -308,4 +308,142 @@ export const coachRouter = router({
 
       return createdQuests;
     }),
+
+  /**
+   * REGENERATE QUESTS
+   * -----------------
+   * Generates additional AI quests and appends them to today's batch.
+   * Limited to 2 regenerations per day.
+   */
+  regenerateQuests: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Get existing batch
+      const existingBatch = await ctx.db.dailyQuestBatch.findUnique({
+        where: {
+          userId_date: {
+            userId: ctx.user.id,
+            date: today,
+          },
+        },
+      });
+
+      if (!existingBatch) {
+        throw new Error("No quests generated yet. Generate quests first.");
+      }
+
+      if (existingBatch.regenerationCount >= 2) {
+        throw new Error("Maximum regenerations reached (2 per day)");
+      }
+
+      // Get user context for AI
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.user.id },
+        include: {
+          coachProfile: true,
+          questCompletions: {
+            orderBy: { completedAt: "desc" },
+            take: 10,
+            include: { quest: true },
+          },
+          quests: {
+            where: { status: "ACTIVE" },
+            take: 10,
+          },
+        },
+      });
+
+      if (!user) throw new Error("User not found");
+      if (!user.coachProfile) throw new Error("Coach profile not set up");
+
+      // Get quest counts by category
+      const questsByCategory = await ctx.db.quest.groupBy({
+        by: ["category"],
+        where: { userId: ctx.user.id, status: "COMPLETED" },
+        _count: true,
+      });
+
+      const categoryMap: Record<Category, number> = {
+        HEALTH: 0,
+        LEARNING: 0,
+        CAREER: 0,
+        PERSONAL: 0,
+        FINANCE: 0,
+      };
+      questsByCategory.forEach((q) => {
+        categoryMap[q.category] = q._count;
+      });
+
+      // Generate new quests with AI
+      const aiResponse = await generateDailyQuests({
+        name: user.name,
+        level: user.level,
+        xp: user.xp,
+        focusAreas: user.coachProfile.focusAreas,
+        challenges: user.coachProfile.challenges,
+        dailyTimeMinutes: user.coachProfile.dailyTimeMinutes,
+        intensity: user.coachProfile.intensity,
+        coachStyle: user.coachProfile.coachStyle,
+        recentCompletions: user.questCompletions.map((c) => ({
+          title: c.quest.title,
+          category: c.quest.category,
+          completedAt: c.completedAt,
+        })),
+        activeQuests: user.quests.map((q) => ({
+          title: q.title,
+          category: q.category,
+        })),
+        questsByCategory: categoryMap,
+      });
+
+      // Add new quests to existing batch and increment regeneration count
+      const updatedBatch = await ctx.db.dailyQuestBatch.update({
+        where: { id: existingBatch.id },
+        data: {
+          motivation: aiResponse.motivation, // Update motivation with new one
+          regenerationCount: { increment: 1 },
+          quests: {
+            create: aiResponse.quests.map((q) => ({
+              title: q.title,
+              description: q.description,
+              reason: q.reason,
+              xpReward: q.xpReward,
+              difficulty: q.difficulty,
+              category: q.category,
+              status: "PENDING",
+            })),
+          },
+        },
+        include: {
+          quests: true,
+        },
+      });
+
+      return updatedBatch;
+    }),
+
+  /**
+   * UNDO SKIP QUEST
+   * ---------------
+   * Reverts a skipped AI quest back to pending status.
+   */
+  undoSkipQuest: protectedProcedure
+    .input(z.object({ aiQuestId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const aiQuest = await ctx.db.aIQuest.findUnique({
+        where: { id: input.aiQuestId },
+        include: { batch: true },
+      });
+
+      if (!aiQuest) throw new Error("AI Quest not found");
+      if (aiQuest.batch.userId !== ctx.user.id) throw new Error("Unauthorized");
+      if (aiQuest.status !== "SKIPPED") throw new Error("Quest is not skipped");
+
+      return ctx.db.aIQuest.update({
+        where: { id: input.aiQuestId },
+        data: { status: "PENDING" },
+      });
+    }),
 });

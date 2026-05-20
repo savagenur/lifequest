@@ -238,6 +238,9 @@ model DailyQuestBatch {
   // AI-generated motivation message for the day
   motivation  String?
   
+  // How many times user has regenerated quests (max 2 allowed)
+  regenerationCount Int @default(0)
+  
   // The quests generated for this day
   quests      AIQuest[]
   

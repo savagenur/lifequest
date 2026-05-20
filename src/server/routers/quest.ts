@@ -137,4 +137,180 @@ export const questRouter = router({
         xpEarned: quest.xpReward,
       };
     }),
+
+  /**
+   * UPDATE QUEST
+   * ------------
+   * Updates an existing quest's details.
+   */
+  update: protectedProcedure
+    .input(
+      z.object({
+        questId: z.string(),
+        title: z.string().min(1, "Title is required").optional(),
+        description: z.string().optional(),
+        xpReward: z.number().int().positive().optional(),
+        difficulty: z.enum(["EASY", "MEDIUM", "HARD", "EPIC"]).optional(),
+        category: z
+          .enum(["HEALTH", "LEARNING", "CAREER", "PERSONAL", "FINANCE"])
+          .optional(),
+        dueDate: z.string().datetime().optional().nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const quest = await ctx.db.quest.findFirst({
+        where: { id: input.questId, userId: ctx.user.id },
+      });
+
+      if (!quest) {
+        throw new Error("Quest not found");
+      }
+
+      const updatedQuest = await ctx.db.quest.update({
+        where: { id: input.questId },
+        data: {
+          ...(input.title && { title: input.title }),
+          ...(input.description !== undefined && { description: input.description }),
+          ...(input.xpReward && { xpReward: input.xpReward }),
+          ...(input.difficulty && { difficulty: input.difficulty as Difficulty }),
+          ...(input.category && { category: input.category as Category }),
+          ...(input.dueDate !== undefined && {
+            dueDate: input.dueDate ? new Date(input.dueDate) : null,
+          }),
+        },
+      });
+
+      return updatedQuest;
+    }),
+
+  /**
+   * DELETE QUEST
+   * ------------
+   * Deletes a quest and its completion records.
+   */
+  delete: protectedProcedure
+    .input(
+      z.object({
+        questId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const quest = await ctx.db.quest.findFirst({
+        where: { id: input.questId, userId: ctx.user.id },
+      });
+
+      if (!quest) {
+        throw new Error("Quest not found");
+      }
+
+      // Delete completion records first, then the quest
+      await ctx.db.$transaction([
+        ctx.db.questCompletion.deleteMany({
+          where: { questId: input.questId },
+        }),
+        ctx.db.quest.delete({
+          where: { id: input.questId },
+        }),
+      ]);
+
+      return { success: true };
+    }),
+
+  /**
+   * UNCOMPLETE QUEST
+   * ----------------
+   * Reverses a completed quest back to active status and removes XP.
+   */
+  uncomplete: protectedProcedure
+    .input(
+      z.object({
+        questId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const quest = await ctx.db.quest.findFirst({
+        where: { id: input.questId, userId: ctx.user.id },
+      });
+
+      if (!quest) {
+        throw new Error("Quest not found");
+      }
+
+      if (quest.status !== "COMPLETED") {
+        throw new Error("Quest is not completed");
+      }
+
+      // Find the completion record to know how much XP to remove
+      const completion = await ctx.db.questCompletion.findFirst({
+        where: { questId: input.questId, userId: ctx.user.id },
+        orderBy: { completedAt: "desc" },
+      });
+
+      const xpToRemove = completion?.xpEarned ?? quest.xpReward;
+
+      // Revert quest status, delete completion, and remove XP
+      const [updatedQuest, , updatedUser] = await ctx.db.$transaction([
+        ctx.db.quest.update({
+          where: { id: input.questId },
+          data: { status: "ACTIVE" },
+        }),
+        ctx.db.questCompletion.deleteMany({
+          where: { questId: input.questId, userId: ctx.user.id },
+        }),
+        ctx.db.user.update({
+          where: { id: ctx.user.id },
+          data: {
+            xp: { decrement: xpToRemove },
+          },
+        }),
+      ]);
+
+      return {
+        quest: updatedQuest,
+        user: updatedUser,
+        xpRemoved: xpToRemove,
+      };
+    }),
+
+  /**
+   * GET ALL QUESTS (including completed today)
+   * ------------------------------------------
+   * Fetches active quests and today's completed quests, sorted properly.
+   * Includes AI quest reason if the quest was created from an AI suggestion.
+   */
+  getAllWithTodayCompleted: protectedProcedure
+    .query(async ({ ctx }) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const quests = await ctx.db.quest.findMany({
+        where: {
+          userId: ctx.user.id,
+          OR: [
+            { status: "ACTIVE" },
+            {
+              status: "COMPLETED",
+              updatedAt: { gte: today },
+            },
+          ],
+        },
+        include: {
+          aiQuest: {
+            select: {
+              reason: true,
+            },
+          },
+        },
+        orderBy: [
+          { status: "asc" }, // ACTIVE comes before COMPLETED alphabetically
+          { createdAt: "desc" },
+        ],
+      });
+
+      // Transform to include reason at top level for easier access
+      return quests.map((quest) => ({
+        ...quest,
+        reason: quest.aiQuest?.reason ?? null,
+      }));
+    }),
 });

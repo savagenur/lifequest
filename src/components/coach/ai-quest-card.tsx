@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X, Sparkles, Zap } from "lucide-react";
+import { Check, X, Sparkles, Zap, RotateCcw } from "lucide-react";
 
 interface AIQuestCardProps {
   id: string;
@@ -13,6 +13,7 @@ interface AIQuestCardProps {
   status: "PENDING" | "ACCEPTED" | "SKIPPED" | "EXPIRED";
   onAccept?: (id: string) => void;
   onSkip?: (id: string) => void;
+  onUndoSkip?: (id: string) => void;
   isLoading?: boolean;
 }
 
@@ -42,6 +43,7 @@ export function AIQuestCard({
   status,
   onAccept,
   onSkip,
+  onUndoSkip,
   isLoading,
 }: AIQuestCardProps) {
   const diffConfig = difficultyConfig[difficulty];
@@ -116,7 +118,19 @@ export function AIQuestCard({
         )}
 
         {status === "SKIPPED" && (
-          <span className="text-sm text-gray-400 font-medium">Skipped</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-400 font-medium">Skipped</span>
+            {onUndoSkip && (
+              <button
+                onClick={() => onUndoSkip(id)}
+                disabled={isLoading}
+                className="px-2 py-1 text-xs rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 disabled:opacity-50 transition-colors flex items-center gap-1"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Undo
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
