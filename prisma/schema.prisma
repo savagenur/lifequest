@@ -17,22 +17,82 @@ datasource db {
 // ============================================
 // The player of LifeQuest. Stores their profile, XP, and level.
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  xp        Int      @default(0)
-  level     Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  password      String?   // Hashed password for credentials auth
+  image         String?
+  xp            Int       @default(0)
+  level         Int       @default(1)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  // Relationships
-  avatar           Avatar?           // One user has one avatar (optional)
-  quests           Quest[]           // One user can create many quests
-  questCompletions QuestCompletion[] // One user can have many completions
-  coachProfile     CoachProfile?     // AI Coach preferences
+  // Auth relationships
+  accounts Account[]
+  sessions Session[]
+
+  // App relationships
+  avatar            Avatar?           // One user has one avatar (optional)
+  quests            Quest[]           // One user can create many quests
+  questCompletions  QuestCompletion[] // One user can have many completions
+  coachProfile      CoachProfile?     // AI Coach preferences
   dailyQuestBatches DailyQuestBatch[] // AI-generated daily quests
 
   @@map("users") // Table name in PostgreSQL
+}
+
+// ============================================
+// AUTH MODELS (NextAuth.js / Auth.js)
+// ============================================
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+  @@map("password_reset_tokens")
 }
 
 // ============================================
