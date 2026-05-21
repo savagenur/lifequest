@@ -57,13 +57,6 @@ export const questRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // If scheduledDate is provided, parse it for the scheduledDate field
-      let scheduledDate: Date | undefined;
-      if (input.scheduledDate) {
-        const [year, month, day] = input.scheduledDate.split("-").map(Number);
-        scheduledDate = new Date(year, month - 1, day, 12, 0, 0, 0); // Set to noon to avoid timezone issues
-      }
-
       const quest = await ctx.db.quest.create({
         data: {
           title: input.title,
@@ -73,7 +66,7 @@ export const questRouter = router({
           category: input.category as Category,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           userId: ctx.user.id,
-          ...(scheduledDate && { scheduledDate }),
+          ...(input.scheduledDate && { scheduledDate: input.scheduledDate }), // scheduledDate is now a string
         },
       });
 
@@ -405,7 +398,7 @@ export const questRouter = router({
    * GET QUESTS BY DATE
    * ------------------
    * Fetches quests scheduled for a specific date.
-   * Uses scheduledDate for proper timezone handling (separate from createdAt).
+   * Uses scheduledDate (String) for proper timezone handling.
    * Falls back to createdAt for quests without scheduledDate (backward compatibility).
    */
   getByDate: protectedProcedure
@@ -415,27 +408,18 @@ export const questRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      // Parse date parts to avoid timezone issues
-      // input.date is "YYYY-MM-DD" format
-      const [year, month, day] = input.date.split("-").map(Number);
-      const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
-      const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999);
-
       const quests = await ctx.db.quest.findMany({
         where: {
           userId: ctx.user.id,
           OR: [
             {
-              scheduledDate: {
-                gte: startOfDay,
-                lte: endOfDay,
-              },
+              scheduledDate: input.date,
             },
             {
               scheduledDate: null,
               createdAt: {
-                gte: startOfDay,
-                lte: endOfDay,
+                gte: new Date(input.date),
+                lte: new Date(new Date(input.date).getTime() + 24 * 60 * 60 * 1000 - 1),
               },
             },
           ],
@@ -453,6 +437,7 @@ export const questRouter = router({
         ],
       });
 
+      // Transform to include reason at top level for easier access
       return quests.map((quest) => ({
         ...quest,
         reason: quest.aiQuest?.reason ?? null,
