@@ -136,6 +136,7 @@ model Quest {
   isRecurring Boolean     @default(false)
   status      QuestStatus @default(ACTIVE)
   dueDate     DateTime?
+  scheduledDate DateTime? // The date this quest is scheduled for (separate from createdAt for timezone handling)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 

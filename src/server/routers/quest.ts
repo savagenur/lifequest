@@ -57,11 +57,11 @@ export const questRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // If scheduledDate is provided, use it for createdAt
-      let createdAt: Date | undefined;
+      // If scheduledDate is provided, parse it for the scheduledDate field
+      let scheduledDate: Date | undefined;
       if (input.scheduledDate) {
         const [year, month, day] = input.scheduledDate.split("-").map(Number);
-        createdAt = new Date(year, month - 1, day, 12, 0, 0, 0); // Set to noon to avoid timezone issues
+        scheduledDate = new Date(year, month - 1, day, 12, 0, 0, 0); // Set to noon to avoid timezone issues
       }
 
       const quest = await ctx.db.quest.create({
@@ -73,7 +73,7 @@ export const questRouter = router({
           category: input.category as Category,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           userId: ctx.user.id,
-          ...(createdAt && { createdAt }),
+          ...(scheduledDate && { scheduledDate }),
         },
       });
 
@@ -404,8 +404,9 @@ export const questRouter = router({
   /**
    * GET QUESTS BY DATE
    * ------------------
-   * Fetches quests created on a specific date.
-   * Used for date-based navigation in the quests page.
+   * Fetches quests scheduled for a specific date.
+   * Uses scheduledDate for proper timezone handling (separate from createdAt).
+   * Falls back to createdAt for quests without scheduledDate (backward compatibility).
    */
   getByDate: protectedProcedure
     .input(
@@ -423,10 +424,21 @@ export const questRouter = router({
       const quests = await ctx.db.quest.findMany({
         where: {
           userId: ctx.user.id,
-          createdAt: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
+          OR: [
+            {
+              scheduledDate: {
+                gte: startOfDay,
+                lte: endOfDay,
+              },
+            },
+            {
+              scheduledDate: null,
+              createdAt: {
+                gte: startOfDay,
+                lte: endOfDay,
+              },
+            },
+          ],
         },
         include: {
           aiQuest: {

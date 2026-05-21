@@ -225,12 +225,13 @@ export const coachRouter = router({
     .mutation(async ({ ctx, input }) => {
       const aiQuest = await ctx.db.aIQuest.findUnique({
         where: { id: input.aiQuestId },
+        include: { batch: true },
       });
 
       if (!aiQuest) throw new Error("AI Quest not found");
       if (aiQuest.status !== "PENDING") throw new Error("Quest already processed");
 
-      // Create the actual quest and link it
+      // Create the actual quest and link it (createdAt will be now(), scheduledDate from batch)
       const [quest] = await ctx.db.$transaction([
         ctx.db.quest.create({
           data: {
@@ -240,6 +241,7 @@ export const coachRouter = router({
             difficulty: aiQuest.difficulty,
             category: aiQuest.category,
             userId: ctx.user.id,
+            scheduledDate: aiQuest.batch.date,
           },
         }),
         ctx.db.aIQuest.update({
@@ -308,6 +310,7 @@ export const coachRouter = router({
             difficulty: aiQuest.difficulty,
             category: aiQuest.category,
             userId: ctx.user.id,
+            scheduledDate: batch.date,
           },
         });
 
