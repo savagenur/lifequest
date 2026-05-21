@@ -115,8 +115,7 @@ export const coachRouter = router({
   getTodayQuests: protectedProcedure
     .query(async ({ ctx }) => {
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const dateString = today.toISOString().split('T')[0];
+      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
@@ -145,8 +144,7 @@ export const coachRouter = router({
   generateQuests: protectedProcedure
     .mutation(async ({ ctx }) => {
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const dateString = today.toISOString().split('T')[0];
+      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
       // Check if already generated today
       const existingBatch = await ctx.db.dailyQuestBatch.findUnique({
@@ -283,8 +281,7 @@ export const coachRouter = router({
   acceptAllQuests: protectedProcedure
     .mutation(async ({ ctx }) => {
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const dateString = today.toISOString().split('T')[0];
+      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
@@ -337,8 +334,7 @@ export const coachRouter = router({
   regenerateQuests: protectedProcedure
     .mutation(async ({ ctx }) => {
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const dateString = today.toISOString().split('T')[0];
+      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
       // Get existing batch
       const existingBatch = await ctx.db.dailyQuestBatch.findUnique({
