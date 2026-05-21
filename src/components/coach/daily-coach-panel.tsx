@@ -7,16 +7,6 @@ import { Sparkles, RefreshCw, CheckCheck } from "lucide-react";
 export function DailyCoachPanel() {
   const { data: batch, refetch, isLoading } = trpc.coach.getTodayQuests.useQuery();
 
-  // Get today's date in YYYY-MM-DD format (local timezone)
-  const getLocalDate = () => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-  const todayDate = getLocalDate();
-
   const generateQuests = trpc.coach.generateQuests.useMutation({
     onSuccess: () => refetch(),
     onError: (error) => {
@@ -31,13 +21,6 @@ export function DailyCoachPanel() {
     },
   });
 
-  const acceptAllQuests = trpc.coach.acceptAllQuests.useMutation({
-    onSuccess: () => refetch(),
-    onError: (error) => {
-      console.error("Failed to accept quests:", error);
-    },
-  });
-
   const acceptQuest = trpc.coach.acceptQuest.useMutation({
     onSuccess: () => refetch(),
   });
@@ -48,9 +31,10 @@ export function DailyCoachPanel() {
 
   const undoSkipQuest = trpc.coach.undoSkipQuest.useMutation({
     onSuccess: () => refetch(),
-    onError: (error) => {
-      console.error("Failed to undo skip quest:", error);
-    },
+  });
+
+  const acceptAll = trpc.coach.acceptAllQuests.useMutation({
+    onSuccess: () => refetch(),
   });
 
   const pendingQuests = batch?.quests.filter((q) => q.status === "PENDING") || [];
@@ -94,7 +78,7 @@ export function DailyCoachPanel() {
         )}
         
         <button
-          onClick={() => generateQuests.mutate({ date: todayDate })}
+          onClick={() => generateQuests.mutate()}
           disabled={generateQuests.isPending}
           className="w-full py-3 bg-white text-purple-600 font-medium rounded-lg hover:bg-purple-50 disabled:opacity-50 flex items-center justify-center gap-2"
         >
@@ -151,8 +135,8 @@ export function DailyCoachPanel() {
       {/* Accept All button */}
       {pendingQuests.length > 1 && (
         <button
-          onClick={() => acceptAllQuests.mutate({ date: todayDate })}
-          disabled={acceptAllQuests.isPending}
+          onClick={() => acceptAll.mutate()}
+          disabled={acceptAll.isPending}
           className="w-full py-2 bg-primary-light text-primary font-medium rounded-lg hover:opacity-80 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <CheckCheck className="w-4 h-4" />

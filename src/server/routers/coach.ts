@@ -114,15 +114,14 @@ export const coachRouter = router({
    */
   getTodayQuests: protectedProcedure
     .query(async ({ ctx }) => {
-      // Use local date string to avoid timezone issues
       const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      today.setHours(0, 0, 0, 0);
 
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
             userId: ctx.user.id,
-            date: todayStr,
+            date: today,
           },
         },
         include: {
@@ -141,36 +140,24 @@ export const coachRouter = router({
    * GENERATE DAILY QUESTS
    * ---------------------
    * Generates new AI quests for today. Only works if no batch exists for today.
-   * Accepts optional date parameter to specify which date to generate for (in YYYY-MM-DD format).
    */
   generateQuests: protectedProcedure
-    .input(
-      z.object({
-        date: z.string().optional(), // ISO date string (YYYY-MM-DD) - if not provided, uses server's local date
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Use provided date or fall back to local date string
-      let targetDate: string;
-      if (input.date) {
-        targetDate = input.date;
-      } else {
-        const today = new Date();
-        targetDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      }
+    .mutation(async ({ ctx }) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      // Check if already generated for this date
+      // Check if already generated today
       const existingBatch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
             userId: ctx.user.id,
-            date: targetDate,
+            date: today,
           },
         },
       });
 
       if (existingBatch) {
-        throw new Error("Quests already generated for this date");
+        throw new Error("Quests already generated for today");
       }
 
       // Get user context for AI (deduplicated helper)
@@ -202,7 +189,7 @@ export const coachRouter = router({
       const batch = await ctx.db.dailyQuestBatch.create({
         data: {
           userId: ctx.user.id,
-          date: targetDate, // String date in YYYY-MM-DD format
+          date: today,
           motivation: aiResponse.motivation,
           quests: {
             create: aiResponse.quests.map((q) => ({
@@ -244,7 +231,7 @@ export const coachRouter = router({
       if (!aiQuest) throw new Error("AI Quest not found");
       if (aiQuest.status !== "PENDING") throw new Error("Quest already processed");
 
-      // Create the actual quest and link it (createdAt will be now(), scheduledDate from batch string)
+      // Create the actual quest and link it (createdAt will be now(), scheduledDate from batch)
       const [quest] = await ctx.db.$transaction([
         ctx.db.quest.create({
           data: {
@@ -254,7 +241,7 @@ export const coachRouter = router({
             difficulty: aiQuest.difficulty,
             category: aiQuest.category,
             userId: ctx.user.id,
-            scheduledDate: aiQuest.batch.date, // batch.date is now a string
+            scheduledDate: aiQuest.batch.date,
           },
         }),
         ctx.db.aIQuest.update({
@@ -292,18 +279,15 @@ export const coachRouter = router({
    * Accepts all pending AI quests from today's batch.
    */
   acceptAllQuests: protectedProcedure
-    .input(
-      z.object({
-        date: z.string(), // ISO date string (YYYY-MM-DD)
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Use the date string directly
+    .mutation(async ({ ctx }) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
             userId: ctx.user.id,
-            date: input.date,
+            date: today,
           },
         },
         include: {
@@ -326,7 +310,7 @@ export const coachRouter = router({
             difficulty: aiQuest.difficulty,
             category: aiQuest.category,
             userId: ctx.user.id,
-            scheduledDate: batch.date, // Use the batch date string
+            scheduledDate: batch.date,
           },
         });
 
@@ -349,16 +333,15 @@ export const coachRouter = router({
    */
   regenerateQuests: protectedProcedure
     .mutation(async ({ ctx }) => {
-      // Use local date string
       const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      today.setHours(0, 0, 0, 0);
 
       // Get existing batch
       const existingBatch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
             userId: ctx.user.id,
-            date: todayStr,
+            date: today,
           },
         },
       });
