@@ -98,10 +98,12 @@ export const questRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // First, get the quest to know how much XP to award
-      // Also verify the quest belongs to the current user
+      // Fetch quest and user in a single query to reduce database round trips
       const quest = await ctx.db.quest.findFirst({
         where: { id: input.questId, userId: ctx.user.id },
+        include: {
+          user: true,
+        },
       });
 
       if (!quest) {
@@ -112,14 +114,7 @@ export const questRouter = router({
         throw new Error("Quest already completed");
       }
 
-      // Get current user data for streak calculation
-      const user = await ctx.db.user.findUnique({
-        where: { id: ctx.user.id },
-      });
-
-      if (!user) {
-        throw new Error("User not found");
-      }
+      const user = quest.user;
 
       // Calculate streak
       const today = new Date();
@@ -161,18 +156,19 @@ export const questRouter = router({
       // Check for newly earned achievements
       const newlyEarnedAchievements: string[] = [];
       
-      // Count completed quests
+      // Count completed quests (after this completion will be +1)
       const completedQuestsCount = await ctx.db.quest.count({
         where: { userId: ctx.user.id, status: "COMPLETED" },
       });
+      const newCompletedCount = completedQuestsCount + 1;
 
       // Quest count achievements
-      if (completedQuestsCount === 1) newlyEarnedAchievements.push("First Quest");
-      if (completedQuestsCount === 5) newlyEarnedAchievements.push("On Fire");
-      if (completedQuestsCount === 10) newlyEarnedAchievements.push("Unstoppable");
-      if (completedQuestsCount === 25) newlyEarnedAchievements.push("Champion");
-      if (completedQuestsCount === 50) newlyEarnedAchievements.push("Legend");
-      if (completedQuestsCount === 100) newlyEarnedAchievements.push("Master");
+      if (newCompletedCount === 1) newlyEarnedAchievements.push("First Quest");
+      if (newCompletedCount === 5) newlyEarnedAchievements.push("On Fire");
+      if (newCompletedCount === 10) newlyEarnedAchievements.push("Unstoppable");
+      if (newCompletedCount === 25) newlyEarnedAchievements.push("Champion");
+      if (newCompletedCount === 50) newlyEarnedAchievements.push("Legend");
+      if (newCompletedCount === 100) newlyEarnedAchievements.push("Master");
 
       // Streak achievements
       if (newStreak === 3) newlyEarnedAchievements.push("3-Day Streak");

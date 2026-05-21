@@ -151,22 +151,26 @@ export function generateMockQuests(context: UserContext): DailyQuestsResponse {
 
 export async function generateDailyQuests(context: UserContext): Promise<DailyQuestsResponse> {
   if (!groq) {
-    throw new Error("AI service not configured. Please add GROQ_API_KEY to your environment variables.");
+    console.warn("AI service not configured, falling back to mock quests");
+    return generateMockQuests(context);
   }
 
   try {
     return await generateWithGroq(context);
   } catch (error) {
-    console.error("Groq error:", error);
+    console.error("Groq error, falling back to mock quests:", error);
     
     // Check if it's a quota/rate limit error
     if (error instanceof Error && (
       error.message.includes("quota") ||
       error.message.includes("rate limit") ||
       error.message.includes("429") ||
-      error.message.includes("insufficient credits")
+      error.message.includes("insufficient credits") ||
+      error.message.includes("402") ||
+      error.message.includes("credit")
     )) {
-      throw new Error("You've reached your AI quota. Please upgrade your subscription to continue generating personalized quests.");
+      console.warn("Groq quota exceeded, using mock quests");
+      return generateMockQuests(context);
     }
     
     // Check if it's a network error
@@ -176,10 +180,13 @@ export async function generateDailyQuests(context: UserContext): Promise<DailyQu
       error.message.includes("ENOTFOUND") ||
       error.message.includes("timeout")
     )) {
-      throw new Error("No internet connection. AI quests require an active internet connection.");
+      console.warn("Network error, using mock quests");
+      return generateMockQuests(context);
     }
     
-    throw new Error("Failed to generate AI quests. Please try again later.");
+    // For any other error, also fall back to mock quests
+    console.warn("AI generation failed, using mock quests");
+    return generateMockQuests(context);
   }
 }
 

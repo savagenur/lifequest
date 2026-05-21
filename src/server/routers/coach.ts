@@ -1,7 +1,55 @@
 import { z } from "zod/v4";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure, type Context } from "../trpc";
 import { generateDailyQuests } from "@/lib/ai-coach";
 import type { Category } from "@/generated/prisma/client";
+
+/**
+ * Helper function to fetch user context for AI quest generation
+ * Deduplicated to avoid repeated database queries
+ */
+async function getUserContextForAI(ctx: Context, userId: string) {
+  const user = await ctx.db.user.findUnique({
+    where: { id: userId },
+    include: {
+      coachProfile: true,
+      questCompletions: {
+        orderBy: { completedAt: "desc" },
+        take: 10,
+        include: { quest: true },
+      },
+      quests: {
+        where: { status: "ACTIVE" },
+        take: 10,
+      },
+    },
+  });
+
+  if (!user) throw new Error("User not found");
+  if (!user.coachProfile) throw new Error("Coach profile not set up");
+
+  // Get quest counts by category
+  const questsByCategory = await ctx.db.quest.groupBy({
+    by: ["category"],
+    where: { userId, status: "COMPLETED" },
+    _count: true,
+  });
+
+  const categoryMap: Record<Category, number> = {
+    HEALTH: 0,
+    LEARNING: 0,
+    CAREER: 0,
+    PERSONAL: 0,
+    FINANCE: 0,
+  };
+  questsByCategory.forEach((q: { category: Category; _count: number }) => {
+    categoryMap[q.category] = q._count;
+  });
+
+  return {
+    user,
+    categoryMap,
+  };
+}
 
 /**
  * AI Coach Router
@@ -112,54 +160,19 @@ export const coachRouter = router({
         throw new Error("Quests already generated for today");
       }
 
-      // Get user context for AI
-      const user = await ctx.db.user.findUnique({
-        where: { id: ctx.user.id },
-        include: {
-          coachProfile: true,
-          questCompletions: {
-            orderBy: { completedAt: "desc" },
-            take: 10,
-            include: { quest: true },
-          },
-          quests: {
-            where: { status: "ACTIVE" },
-            take: 10,
-          },
-        },
-      });
-
-      if (!user) throw new Error("User not found");
-      if (!user.coachProfile) throw new Error("Coach profile not set up");
-
-      // Get quest counts by category
-      const questsByCategory = await ctx.db.quest.groupBy({
-        by: ["category"],
-        where: { userId: ctx.user.id, status: "COMPLETED" },
-        _count: true,
-      });
-
-      const categoryMap: Record<Category, number> = {
-        HEALTH: 0,
-        LEARNING: 0,
-        CAREER: 0,
-        PERSONAL: 0,
-        FINANCE: 0,
-      };
-      questsByCategory.forEach((q) => {
-        categoryMap[q.category] = q._count;
-      });
+      // Get user context for AI (deduplicated helper)
+      const { user, categoryMap } = await getUserContextForAI(ctx, ctx.user.id);
 
       // Generate quests with AI
       const aiResponse = await generateDailyQuests({
         name: user.name,
         level: user.level,
         xp: user.xp,
-        focusAreas: user.coachProfile.focusAreas,
-        challenges: user.coachProfile.challenges,
-        dailyTimeMinutes: user.coachProfile.dailyTimeMinutes,
-        intensity: user.coachProfile.intensity,
-        coachStyle: user.coachProfile.coachStyle,
+        focusAreas: user.coachProfile!.focusAreas,
+        challenges: user.coachProfile!.challenges,
+        dailyTimeMinutes: user.coachProfile!.dailyTimeMinutes,
+        intensity: user.coachProfile!.intensity,
+        coachStyle: user.coachProfile!.coachStyle,
         recentCompletions: user.questCompletions.map((c) => ({
           title: c.quest.title,
           category: c.quest.category,
@@ -338,54 +351,19 @@ export const coachRouter = router({
         throw new Error("Maximum regenerations reached (2 per day)");
       }
 
-      // Get user context for AI
-      const user = await ctx.db.user.findUnique({
-        where: { id: ctx.user.id },
-        include: {
-          coachProfile: true,
-          questCompletions: {
-            orderBy: { completedAt: "desc" },
-            take: 10,
-            include: { quest: true },
-          },
-          quests: {
-            where: { status: "ACTIVE" },
-            take: 10,
-          },
-        },
-      });
-
-      if (!user) throw new Error("User not found");
-      if (!user.coachProfile) throw new Error("Coach profile not set up");
-
-      // Get quest counts by category
-      const questsByCategory = await ctx.db.quest.groupBy({
-        by: ["category"],
-        where: { userId: ctx.user.id, status: "COMPLETED" },
-        _count: true,
-      });
-
-      const categoryMap: Record<Category, number> = {
-        HEALTH: 0,
-        LEARNING: 0,
-        CAREER: 0,
-        PERSONAL: 0,
-        FINANCE: 0,
-      };
-      questsByCategory.forEach((q) => {
-        categoryMap[q.category] = q._count;
-      });
+      // Get user context for AI (deduplicated helper)
+      const { user, categoryMap } = await getUserContextForAI(ctx, ctx.user.id);
 
       // Generate new quests with AI
       const aiResponse = await generateDailyQuests({
         name: user.name,
         level: user.level,
         xp: user.xp,
-        focusAreas: user.coachProfile.focusAreas,
-        challenges: user.coachProfile.challenges,
-        dailyTimeMinutes: user.coachProfile.dailyTimeMinutes,
-        intensity: user.coachProfile.intensity,
-        coachStyle: user.coachProfile.coachStyle,
+        focusAreas: user.coachProfile!.focusAreas,
+        challenges: user.coachProfile!.challenges,
+        dailyTimeMinutes: user.coachProfile!.dailyTimeMinutes,
+        intensity: user.coachProfile!.intensity,
+        coachStyle: user.coachProfile!.coachStyle,
         recentCompletions: user.questCompletions.map((c) => ({
           title: c.quest.title,
           category: c.quest.category,

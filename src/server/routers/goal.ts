@@ -28,50 +28,54 @@ export const goalRouter = router({
         ],
       });
 
+      // Fetch shared data once to avoid N+1 queries
+      const completedQuestsCount = await ctx.db.quest.count({
+        where: { userId: ctx.user.id, status: "COMPLETED" },
+      });
+
       // Auto-calculate progress for each goal based on unit type
-      const goalsWithProgress = await Promise.all(
-        goals.map(async (goal) => {
-          let currentValue = goal.currentValue;
+      const goalsWithProgress = goals.map((goal) => {
+        let currentValue = goal.currentValue;
 
-          if (goal.unit === "XP") {
-            currentValue = user.xp;
-          } else if (goal.unit === "quests") {
-            const completedQuests = await ctx.db.quest.count({
-              where: { userId: ctx.user.id, status: "COMPLETED" },
-            });
-            currentValue = completedQuests;
-          } else if (goal.unit === "days") {
-            currentValue = user.currentStreak;
-          }
+        if (goal.unit === "XP") {
+          currentValue = user.xp;
+        } else if (goal.unit === "quests") {
+          currentValue = completedQuestsCount;
+        } else if (goal.unit === "days") {
+          currentValue = user.currentStreak;
+        }
 
-          // Check if goal is completed based on current value
-          const isCompleted = currentValue >= goal.targetValue;
+        // Check if goal is completed based on current value
+        const isCompleted = currentValue >= goal.targetValue;
 
-          // Update goal if completion status changed
-          if (isCompleted !== goal.isCompleted) {
-            await ctx.db.goal.update({
+        return {
+          ...goal,
+          currentValue,
+          isCompleted,
+        };
+      });
+
+      // Batch update goals that need changes
+      const goalsToUpdate = goalsWithProgress.filter(
+        (goal, index) => 
+          goal.currentValue !== goals[index].currentValue || 
+          goal.isCompleted !== goals[index].isCompleted
+      );
+
+      if (goalsToUpdate.length > 0) {
+        await ctx.db.$transaction(
+          goalsToUpdate.map((goal) =>
+            ctx.db.goal.update({
               where: { id: goal.id },
               data: {
-                currentValue,
-                isCompleted,
-                completedAt: isCompleted ? new Date() : null,
+                currentValue: goal.currentValue,
+                isCompleted: goal.isCompleted,
+                completedAt: goal.isCompleted && !goals.find(g => g.id === goal.id)?.isCompleted ? new Date() : null,
               },
-            });
-          } else {
-            // Just update current value if it changed
-            await ctx.db.goal.update({
-              where: { id: goal.id },
-              data: { currentValue },
-            });
-          }
-
-          return {
-            ...goal,
-            currentValue,
-            isCompleted,
-          };
-        })
-      );
+            })
+          )
+        );
+      }
 
       return goalsWithProgress;
     }),
