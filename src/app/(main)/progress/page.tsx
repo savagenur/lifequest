@@ -121,13 +121,24 @@ export default function ProgressPage() {
 
   
   const achievements = useMemo(() => [
-    { icon: "🎯", title: "First Quest", unlocked: (stats?.completedQuests ?? 0) >= 1, description: "Complete your first quest" },
-    { icon: "🔥", title: "On Fire", unlocked: (stats?.completedQuests ?? 0) >= 5, description: "Complete 5 quests" },
-    { icon: "⚡", title: "Unstoppable", unlocked: (stats?.completedQuests ?? 0) >= 10, description: "Complete 10 quests" },
-    { icon: "👑", title: "Champion", unlocked: (stats?.completedQuests ?? 0) >= 25, description: "Complete 25 quests" },
-    { icon: "🌟", title: "Legend", unlocked: (stats?.completedQuests ?? 0) >= 50, description: "Complete 50 quests" },
-    { icon: "💎", title: "Master", unlocked: (stats?.completedQuests ?? 0) >= 100, description: "Complete 100 quests" },
-  ], [stats?.completedQuests]);
+    // Quest Count Achievements
+    { icon: "🎯", title: "First Quest", unlocked: (stats?.completedQuests ?? 0) >= 1, description: "Complete your first quest", category: "QUEST_COUNT" },
+    { icon: "🔥", title: "On Fire", unlocked: (stats?.completedQuests ?? 0) >= 5, description: "Complete 5 quests", category: "QUEST_COUNT" },
+    { icon: "⚡", title: "Unstoppable", unlocked: (stats?.completedQuests ?? 0) >= 10, description: "Complete 10 quests", category: "QUEST_COUNT" },
+    { icon: "👑", title: "Champion", unlocked: (stats?.completedQuests ?? 0) >= 25, description: "Complete 25 quests", category: "QUEST_COUNT" },
+    { icon: "🌟", title: "Legend", unlocked: (stats?.completedQuests ?? 0) >= 50, description: "Complete 50 quests", category: "QUEST_COUNT" },
+    { icon: "💎", title: "Master", unlocked: (stats?.completedQuests ?? 0) >= 100, description: "Complete 100 quests", category: "QUEST_COUNT" },
+    
+    // Streak Achievements
+    { icon: "🔥", title: "3-Day Streak", unlocked: (user?.currentStreak ?? 0) >= 3, description: "Maintain a 3-day streak", category: "STREAK" },
+    { icon: "⚡", title: "Week Warrior", unlocked: (user?.currentStreak ?? 0) >= 7, description: "Maintain a 7-day streak", category: "STREAK" },
+    { icon: "👑", title: "Month Master", unlocked: (user?.currentStreak ?? 0) >= 30, description: "Maintain a 30-day streak", category: "STREAK" },
+    
+    // Level Achievements
+    { icon: "🎯", title: "Level 5", unlocked: (user?.level ?? 0) >= 5, description: "Reach Level 5", category: "LEVEL" },
+    { icon: "⚡", title: "Level 10", unlocked: (user?.level ?? 0) >= 10, description: "Reach Level 10", category: "LEVEL" },
+    { icon: "👑", title: "Level 25", unlocked: (user?.level ?? 0) >= 25, description: "Reach Level 25", category: "LEVEL" },
+  ], [stats?.completedQuests, user?.currentStreak, user?.level]);
 
   const unlockedCount = achievements.filter(a => a.unlocked).length;
 

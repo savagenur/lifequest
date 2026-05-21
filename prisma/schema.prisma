@@ -28,6 +28,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Streak tracking
+  currentStreak   Int       @default(0)      // Current consecutive days with completed quests
+  longestStreak   Int       @default(0)      // Longest streak achieved
+  lastActiveDate  DateTime?                 // Last date user completed a quest
+
   // Auth relationships
   accounts Account[]
   sessions Session[]
@@ -38,6 +43,8 @@ model User {
   questCompletions  QuestCompletion[] // One user can have many completions
   coachProfile      CoachProfile?     // AI Coach preferences
   dailyQuestBatches DailyQuestBatch[] // AI-generated daily quests
+  userBadges        UserBadge[]       // Badges user has earned
+  goals             Goal[]            // User's progress goals
 
   @@map("users") // Table name in PostgreSQL
 }
@@ -296,4 +303,84 @@ enum AIQuestStatus {
   ACCEPTED  // User accepted, Quest created
   SKIPPED   // User skipped this suggestion
   EXPIRED   // Day passed without action
+}
+
+// ============================================
+// BADGE SYSTEM MODELS
+// ============================================
+
+// Badge definitions (achievements users can earn)
+model Badge {
+  id          String   @id @default(cuid())
+  name        String   // Display name
+  description String   // What this badge represents
+  icon        String   // Emoji or icon for the badge
+  category    BadgeCategory
+  requirement String  // How to earn this badge (e.g., "Complete 10 health quests")
+  rarity      BadgeRarity @default(COMMON)
+  createdAt   DateTime @default(now())
+
+  // Which users have earned this badge
+  userBadges  UserBadge[]
+
+  @@index([category])
+  @@map("badges")
+}
+
+// Join table for users and badges
+model UserBadge {
+  id        String   @id @default(cuid())
+  earnedAt  DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  badgeId String
+  badge   Badge   @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@map("user_badges")
+}
+
+enum BadgeCategory {
+  QUEST_COUNT      // Total quests completed
+  CATEGORY          // Category-specific achievements
+  DIFFICULTY        // Difficulty-specific achievements
+  STREAK            // Streak-based achievements
+  LEVEL             // Level-based achievements
+  TIME              // Time-based achievements
+  SPECIAL           // Special/limited achievements
+}
+
+enum BadgeRarity {
+  COMMON    // Easy to earn
+  RARE      // Moderate difficulty
+  EPIC      // Hard to earn
+  LEGENDARY // Very rare achievements
+}
+
+// ============================================
+// GOAL SYSTEM MODELS
+// ============================================
+
+// User's personal progress goals
+model Goal {
+  id          String   @id @default(cuid())
+  title       String   // Goal title
+  description String?  // Optional description
+  targetValue Int      // Target value (e.g., 500 XP)
+  currentValue Int     @default(0) // Current progress
+  unit        String   @default("XP") // Unit of measurement
+  deadline    DateTime?
+  isCompleted Boolean  @default(false)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("goals")
 }

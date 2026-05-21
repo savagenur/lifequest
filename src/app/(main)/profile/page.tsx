@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { LogOut, Trophy, Pencil, Camera, X, Check, Upload, Loader2 } from "lucide-react";
+import { LogOut, Pencil, Camera, X, Check, Upload, Loader2, Plus, Target, Trash2 } from "lucide-react";
 import { logout } from "@/lib/auth-actions";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import Image from "next/image";
@@ -22,6 +22,7 @@ function calculateLevelProgress(xp: number): number {
 export default function ProfilePage() {
   const utils = trpc.useUtils();
   const { data: user } = trpc.user.getById.useQuery();
+  const { data: goals, refetch: refetchGoals } = trpc.goal.getAll.useQuery();
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -29,6 +30,8 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [goalForm, setGoalForm] = useState({ title: "", targetValue: "", unit: "XP" });
   const nameInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,6 +42,18 @@ export default function ProfilePage() {
       setIsEditingAvatar(false);
       setPreviewUrl(null);
     },
+  });
+
+  const createGoal = trpc.goal.create.useMutation({
+    onSuccess: () => {
+      refetchGoals();
+      setShowGoalForm(false);
+      setGoalForm({ title: "", targetValue: "", unit: "XP" });
+    },
+  });
+
+  const deleteGoal = trpc.goal.delete.useMutation({
+    onSuccess: () => refetchGoals(),
   });
 
   // Calculate level from XP to ensure consistency with header
@@ -363,19 +378,162 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Achievements Preview */}
+      {/* Progress Goals */}
       <div className="bg-surface rounded-xl border border-border">
-        <div className="p-4 border-b border-border">
-          <h3 className="font-semibold text-text-primary">Achievements</h3>
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Target className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-text-primary">Progress Goals</h3>
+          </div>
+          <button
+            onClick={() => setShowGoalForm(true)}
+            className="p-1.5 rounded-full bg-primary-light text-primary hover:bg-primary-hover transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
         </div>
-        <div className="p-6 text-center">
-          <Trophy className="w-12 h-12 mx-auto text-text-muted mb-3" />
-          <p className="text-text-muted">Achievements coming soon!</p>
-          <p className="text-sm text-text-muted mt-1">
-            Complete quests to unlock badges
-          </p>
+
+        <div className="p-4 space-y-3">
+          {goals && goals.length > 0 ? (
+            goals.map((goal) => {
+              const percentage = Math.min((goal.currentValue / goal.targetValue) * 100, 100);
+              const getGoalIcon = () => {
+                switch (goal.unit) {
+                  case "XP": return "⚡";
+                  case "quests": return "🎯";
+                  case "days": return "🔥";
+                  default: return "📊";
+                }
+              };
+              const getGoalColor = () => {
+                if (goal.isCompleted) return "green";
+                if (percentage >= 75) return "green";
+                if (percentage >= 50) return "blue";
+                return "purple";
+              };
+              
+              return (
+                <div
+                  key={goal.id}
+                  className={`p-4 rounded-lg border transition-all ${
+                    goal.isCompleted
+                      ? "bg-success/10 border-success/30"
+                      : "bg-surface-secondary border-border hover:border-primary/50"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start gap-3 flex-1">
+                      <span className="text-2xl">{getGoalIcon()}</span>
+                      <div className="flex-1">
+                        <p className={`font-medium ${goal.isCompleted ? "text-success line-through" : "text-text-primary"}`}>
+                          {goal.title}
+                        </p>
+                        {goal.description && (
+                          <p className="text-xs text-text-muted mt-0.5">{goal.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deleteGoal.mutate({ goalId: goal.id })}
+                      disabled={deleteGoal.isPending}
+                      className="p-1.5 rounded-lg text-text-muted hover:text-error hover:bg-error/10 transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-text-muted">Progress</span>
+                      <span className={`font-semibold ${goal.isCompleted ? "text-success" : "text-text-primary"}`}>
+                        {goal.currentValue}/{goal.targetValue} {goal.unit}
+                      </span>
+                    </div>
+                    <ProgressBar
+                      value={goal.currentValue}
+                      max={goal.targetValue}
+                      showValue={false}
+                      size="sm"
+                      color={getGoalColor()}
+                    />
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-8 text-text-muted">
+              <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm font-medium">No goals yet</p>
+              <p className="text-xs mt-1">Set a target to track your progress</p>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Goal Form Dialog */}
+      {showGoalForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-xl p-4 w-full max-w-md space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-text-primary">Create Goal</h3>
+              <button
+                onClick={() => {
+                  setShowGoalForm(false);
+                  setGoalForm({ title: "", targetValue: "", unit: "XP" });
+                }}
+                className="p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Goal title..."
+              value={goalForm.title}
+              onChange={(e) => setGoalForm({ ...goalForm, title: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted"
+            />
+
+            <div>
+              <label className="text-sm text-text-muted mb-2 block">Target Value</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="100"
+                  value={goalForm.targetValue}
+                  onChange={(e) => setGoalForm({ ...goalForm, targetValue: e.target.value })}
+                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-surface text-text-primary"
+                />
+                <select
+                  value={goalForm.unit}
+                  onChange={(e) => setGoalForm({ ...goalForm, unit: e.target.value })}
+                  className="px-3 py-2 rounded-lg border border-border bg-surface text-text-primary"
+                >
+                  <option value="XP">XP</option>
+                  <option value="quests">Quests</option>
+                  <option value="days">Days</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                const targetValue = parseInt(goalForm.targetValue);
+                if (!goalForm.title.trim() || !goalForm.targetValue.trim() || isNaN(targetValue) || targetValue <= 0) return;
+                createGoal.mutate({
+                  title: goalForm.title,
+                  targetValue: targetValue,
+                  unit: goalForm.unit,
+                });
+              }}
+              disabled={!goalForm.title.trim() || !goalForm.targetValue.trim() || isNaN(parseInt(goalForm.targetValue)) || parseInt(goalForm.targetValue) <= 0 || createGoal.isPending}
+              className="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {createGoal.isPending ? "Creating..." : "Create Goal"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Settings */}
       <div className="bg-surface rounded-xl border border-border divide-y divide-border">

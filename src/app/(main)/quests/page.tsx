@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { QuestCard } from "@/components/ui/quest-card";
+import { CelebrationModal } from "@/components/ui/celebration-modal";
 import { Plus, X, ChevronDown, Trophy } from "lucide-react";
 
 const categories = [
@@ -88,7 +89,33 @@ export default function QuestsPage() {
   const dateScrollRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLButtonElement>(null);
 
+  // Celebration modal state
+  const [celebration, setCelebration] = useState<{
+    isOpen: boolean;
+    type: "quest" | "level" | "badge" | "streak";
+    title: string;
+    message: string;
+    xpEarned?: number;
+    streak?: number;
+    badge?: {
+      icon: string;
+      name: string;
+    };
+  }>({
+    isOpen: false,
+    type: "quest",
+    title: "",
+    message: "",
+  });
+
+  const [achievementQueue, setAchievementQueue] = useState<string[]>([]);
+  const [isShowingAchievement, setIsShowingAchievement] = useState(false);
+  const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
+
   const utils = trpc.useUtils();
+
+  // Fetch user data for motivational messages
+  const { data: user } = trpc.user.getById.useQuery();
 
   // Generate date range (memoized to avoid recalculation)
   const dateRange = useMemo(() => generateDateRange(), []);
@@ -131,10 +158,52 @@ export default function QuestsPage() {
   });
 
   const completeQuest = trpc.quest.complete.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       refetch();
       // Invalidate user query to update header XP
       utils.user.getById.invalidate();
+
+      // Queue achievements if any
+      if (data.newlyEarnedAchievements && data.newlyEarnedAchievements.length > 0) {
+        setAchievementQueue(data.newlyEarnedAchievements);
+      }
+
+      // Show celebration modal only for special milestones
+      if (data.leveledUp) {
+        setCelebration({
+          isOpen: true,
+          type: "level",
+          title: `Level Up! 🎉`,
+          message: `You've reached Level ${data.newLevel}!`,
+          xpEarned: data.xpEarned,
+        });
+      } else if (data.streak >= 3 && data.streak % 5 === 0) {
+        // Celebrate streak milestones (5, 10, 15, etc.)
+        setCelebration({
+          isOpen: true,
+          type: "streak",
+          title: `${data.streak}-Day Streak! 🔥`,
+          message: "You're on fire! Keep it going!",
+          xpEarned: data.xpEarned,
+          streak: data.streak,
+        });
+      } else {
+        // Show simple toast for regular quest completion
+        const encouragingMessages = [
+          "Great job! Keep up the momentum! 💪",
+          "You're crushing it! One step closer to your goals! 🚀",
+          "Excellent work! Your consistency pays off! ⭐",
+          "Way to go! You're making real progress! 🎯",
+          "Fantastic! Every quest completed is a victory! 🏆",
+          "Keep it up! You're building great habits! 🔥",
+          "Amazing work! Your dedication is inspiring! ✨",
+          "Well done! You're unstoppable! 💫",
+        ];
+        const randomMessage = encouragingMessages[Math.floor(Math.random() * encouragingMessages.length)];
+        
+        setToast({ show: true, message: randomMessage });
+        setTimeout(() => setToast({ show: false, message: "" }), 2000);
+      }
     },
   });
 
@@ -180,8 +249,51 @@ export default function QuestsPage() {
     }
   };
 
+  // Get motivational message based on time of day and streak (memoized to avoid impure Math.random)
+  const motivationalMessage = useMemo(() => {
+    const hour = new Date().getHours();
+    const streak = user?.currentStreak ?? 0;
+    
+    const timeMessages = {
+      morning: [
+        "Rise and shine! Let's conquer today's quests! 🌅",
+        "Morning warrior! Your journey begins now. ⚔️",
+        "Start strong, finish stronger! 💪",
+      ],
+      afternoon: [
+        "Keep the momentum going! 🚀",
+        "Halfway there, you're doing great! 🌟",
+        "Every quest completed is a victory! 🎯",
+      ],
+      evening: [
+        "Finish strong today! 🌙",
+        "One last push before rest! 💫",
+        "End the day with accomplishment! ✨",
+      ],
+    };
+
+    const timeOfDay = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
+    const messages = timeMessages[timeOfDay];
+    // Use hour to deterministically select message instead of Math.random
+    const messageIndex = hour % messages.length;
+    const selectedMessage = messages[messageIndex];
+
+    if (streak >= 7) {
+      return `${selectedMessage} 🔥 ${streak}-day streak!`;
+    } else if (streak >= 3) {
+      return `${selectedMessage} Keep your ${streak}-day streak alive!`;
+    }
+    
+    return selectedMessage;
+  }, [user?.currentStreak]);
+
   return (
     <div className="pb-24 space-y-4">
+      {/* Motivational Banner */}
+      <div className="bg-linear-to-r from-purple-500 to-blue-500 rounded-xl p-4 text-white">
+        <p className="text-sm font-medium">{motivationalMessage}</p>
+      </div>
+
       {/* Date Navigation Widget */}
       <div
         ref={dateScrollRef}
@@ -529,6 +641,47 @@ export default function QuestsPage() {
       >
         <Plus className="w-7 h-7" />
       </button>
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-surface border border-border rounded-lg px-4 py-2 shadow-lg z-50 animate-in slide-in-from-bottom-4 duration-200">
+          <p className="text-sm text-text-primary">{toast.message}</p>
+        </div>
+      )}
+
+      {/* Celebration Modal */}
+      <CelebrationModal
+        isOpen={celebration.isOpen}
+        onClose={() => {
+          setCelebration({ ...celebration, isOpen: false });
+          // Show next achievement if any in queue
+          if (achievementQueue.length > 0 && !isShowingAchievement) {
+            setIsShowingAchievement(true);
+            const nextAchievement = achievementQueue[0];
+            setAchievementQueue(achievementQueue.slice(1));
+            
+            setTimeout(() => {
+              setCelebration({
+                isOpen: true,
+                type: "badge",
+                title: "Achievement Unlocked! 🏆",
+                message: `You earned: ${nextAchievement}`,
+                badge: {
+                  icon: "🏆",
+                  name: nextAchievement,
+                },
+              });
+              setIsShowingAchievement(false);
+            }, 300);
+          }
+        }}
+        type={celebration.type}
+        title={celebration.title}
+        message={celebration.message}
+        xpEarned={celebration.xpEarned}
+        streak={celebration.streak}
+        badge={celebration.badge}
+      />
     </div>
   );
 }

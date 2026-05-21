@@ -24,6 +24,8 @@ export default function MainLayout({
           userLevel={user?.level ?? 1}
           userXp={user?.xp ?? 0}
           avatarUrl={user?.avatar?.imageUrl}
+          currentStreak={user?.currentStreak ?? 0}
+          lastActiveDate={user?.lastActiveDate ? new Date(user.lastActiveDate) : null}
         />
       )}
       

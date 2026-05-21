@@ -85,10 +85,11 @@ export const questRouter = router({
    * --------------
    * Marks a quest as completed and awards XP to the user.
    *
-   * This does 3 things in a transaction:
+   * This does 4 things in a transaction:
    * 1. Updates quest status to COMPLETED
    * 2. Creates a QuestCompletion record
    * 3. Adds XP to the user
+   * 4. Updates streak tracking
    */
   complete: protectedProcedure
     .input(
@@ -111,6 +112,78 @@ export const questRouter = router({
         throw new Error("Quest already completed");
       }
 
+      // Get current user data for streak calculation
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.user.id },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      // Calculate streak
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      let newStreak = 1;
+      let newLongestStreak = user.longestStreak;
+
+      if (user.lastActiveDate) {
+        const lastActive = new Date(user.lastActiveDate);
+        lastActive.setHours(0, 0, 0, 0);
+        
+        const diffDays = Math.floor((today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) {
+          // Same day, keep current streak
+          newStreak = user.currentStreak;
+        } else if (diffDays === 1) {
+          // Consecutive day, increment streak
+          newStreak = user.currentStreak + 1;
+        } else {
+          // Streak broken, start fresh
+          newStreak = 1;
+        }
+      }
+
+      // Update longest streak if needed
+      if (newStreak > newLongestStreak) {
+        newLongestStreak = newStreak;
+      }
+
+      // Calculate level before and after
+      const XP_PER_LEVEL = 100;
+      const oldLevel = Math.floor(user.xp / XP_PER_LEVEL) + 1;
+      const newTotalXp = user.xp + quest.xpReward;
+      const newLevel = Math.floor(newTotalXp / XP_PER_LEVEL) + 1;
+      const leveledUp = newLevel > oldLevel;
+
+      // Check for newly earned achievements
+      const newlyEarnedAchievements: string[] = [];
+      
+      // Count completed quests
+      const completedQuestsCount = await ctx.db.quest.count({
+        where: { userId: ctx.user.id, status: "COMPLETED" },
+      });
+
+      // Quest count achievements
+      if (completedQuestsCount === 1) newlyEarnedAchievements.push("First Quest");
+      if (completedQuestsCount === 5) newlyEarnedAchievements.push("On Fire");
+      if (completedQuestsCount === 10) newlyEarnedAchievements.push("Unstoppable");
+      if (completedQuestsCount === 25) newlyEarnedAchievements.push("Champion");
+      if (completedQuestsCount === 50) newlyEarnedAchievements.push("Legend");
+      if (completedQuestsCount === 100) newlyEarnedAchievements.push("Master");
+
+      // Streak achievements
+      if (newStreak === 3) newlyEarnedAchievements.push("3-Day Streak");
+      if (newStreak === 7) newlyEarnedAchievements.push("Week Warrior");
+      if (newStreak === 30) newlyEarnedAchievements.push("Month Master");
+
+      // Level achievements
+      if (newLevel === 5) newlyEarnedAchievements.push("Level 5");
+      if (newLevel === 10) newlyEarnedAchievements.push("Level 10");
+      if (newLevel === 25) newlyEarnedAchievements.push("Level 25");
+
       // Use a transaction to ensure all updates succeed or none do
       const [updatedQuest, completion, updatedUser] = await ctx.db.$transaction(
         [
@@ -129,11 +202,15 @@ export const questRouter = router({
             },
           }),
 
-          // 3. Add XP to user
+          // 3. Add XP to user and update streak
           ctx.db.user.update({
             where: { id: ctx.user.id },
             data: {
               xp: { increment: quest.xpReward },
+              level: newLevel,
+              currentStreak: newStreak,
+              longestStreak: newLongestStreak,
+              lastActiveDate: today,
             },
           }),
         ]
@@ -144,6 +221,11 @@ export const questRouter = router({
         completion,
         user: updatedUser,
         xpEarned: quest.xpReward,
+        streak: newStreak,
+        leveledUp,
+        oldLevel,
+        newLevel,
+        newlyEarnedAchievements,
       };
     }),
 
