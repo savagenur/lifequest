@@ -57,12 +57,8 @@ export const questRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // If scheduledDate is provided, parse it for the scheduledDate field
-      let scheduledDate: Date | undefined;
-      if (input.scheduledDate) {
-        const [year, month, day] = input.scheduledDate.split("-").map(Number);
-        scheduledDate = new Date(year, month - 1, day, 12, 0, 0, 0); // Set to noon to avoid timezone issues
-      }
+      // If scheduledDate is provided, use it directly as a string
+      const scheduledDate: string | undefined = input.scheduledDate;
 
       const quest = await ctx.db.quest.create({
         data: {
@@ -415,27 +411,20 @@ export const questRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      // Parse date parts to avoid timezone issues
       // input.date is "YYYY-MM-DD" format
-      const [year, month, day] = input.date.split("-").map(Number);
-      const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
-      const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999);
-
+      // scheduledDate is now a string, so we compare directly
       const quests = await ctx.db.quest.findMany({
         where: {
           userId: ctx.user.id,
           OR: [
             {
-              scheduledDate: {
-                gte: startOfDay,
-                lte: endOfDay,
-              },
+              scheduledDate: input.date,
             },
             {
               scheduledDate: null,
               createdAt: {
-                gte: startOfDay,
-                lte: endOfDay,
+                gte: new Date(`${input.date}T00:00:00.000Z`),
+                lte: new Date(`${input.date}T23:59:59.999Z`),
               },
             },
           ],

@@ -136,7 +136,7 @@ model Quest {
   isRecurring Boolean     @default(false)
   status      QuestStatus @default(ACTIVE)
   dueDate     DateTime?
-  scheduledDate DateTime? // The date this quest is scheduled for (separate from createdAt for timezone handling)
+  scheduledDate String? // The date this quest is scheduled for (separate from createdAt for timezone handling)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -240,7 +240,7 @@ model CoachProfile {
 // Daily AI-generated quest batch
 model DailyQuestBatch {
   id          String   @id @default(cuid())
-  date        DateTime @db.Date // The date this batch is for
+  date        String // The date this batch is for
   createdAt   DateTime @default(now())
   
   // AI-generated motivation message for the day

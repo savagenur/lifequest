@@ -116,12 +116,13 @@ export const coachRouter = router({
     .query(async ({ ctx }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const dateString = today.toISOString().split('T')[0];
 
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
             userId: ctx.user.id,
-            date: today,
+            date: dateString,
           },
         },
         include: {
@@ -145,13 +146,14 @@ export const coachRouter = router({
     .mutation(async ({ ctx }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const dateString = today.toISOString().split('T')[0];
 
       // Check if already generated today
       const existingBatch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
             userId: ctx.user.id,
-            date: today,
+            date: dateString,
           },
         },
       });
@@ -189,7 +191,7 @@ export const coachRouter = router({
       const batch = await ctx.db.dailyQuestBatch.create({
         data: {
           userId: ctx.user.id,
-          date: today,
+          date: dateString,
           motivation: aiResponse.motivation,
           quests: {
             create: aiResponse.quests.map((q) => ({
@@ -282,12 +284,13 @@ export const coachRouter = router({
     .mutation(async ({ ctx }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const dateString = today.toISOString().split('T')[0];
 
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
             userId: ctx.user.id,
-            date: today,
+            date: dateString,
           },
         },
         include: {
@@ -335,13 +338,14 @@ export const coachRouter = router({
     .mutation(async ({ ctx }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const dateString = today.toISOString().split('T')[0];
 
       // Get existing batch
       const existingBatch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
           userId_date: {
             userId: ctx.user.id,
-            date: today,
+            date: dateString,
           },
         },
       });
