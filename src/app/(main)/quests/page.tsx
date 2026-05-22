@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
+import { formatLocalDate, getTodayLocalDateString } from "@/lib/date-utils";
 import { QuestCard } from "@/components/ui/quest-card";
 import { CelebrationModal } from "@/components/ui/celebration-modal";
 import { Plus, X, ChevronDown, Trophy } from "lucide-react";
@@ -39,7 +40,7 @@ function generateDateRange(): Date[] {
 }
 
 function formatDateKey(date: Date): string {
-  return date.toISOString().split("T")[0];
+  return formatLocalDate(date);
 }
 
 function getDayName(date: Date): string {
@@ -113,6 +114,9 @@ export default function QuestsPage() {
   const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
 
   const utils = trpc.useUtils();
+  
+  // Get today's local date for API calls that need it
+  const todayLocalDate = getTodayLocalDateString();
 
   // Fetch user data for motivational messages
   const { data: user } = trpc.user.getById.useQuery();
@@ -561,7 +565,7 @@ export default function QuestsPage() {
             category={quest.category}
             status={quest.status}
             dueDate={quest.dueDate ? new Date(quest.dueDate) : null}
-            onComplete={(id) => completeQuest.mutate({ questId: id })}
+            onComplete={(id) => completeQuest.mutate({ questId: id, localDate: todayLocalDate })}
             onEdit={handleEditQuest}
             onDelete={handleDeleteQuest}
             onUncomplete={(id) => uncompleteQuest.mutate({ questId: id })}
@@ -619,7 +623,7 @@ export default function QuestsPage() {
                   category={quest.category}
                   status={quest.status}
                   dueDate={quest.dueDate ? new Date(quest.dueDate) : null}
-                  onComplete={(id) => completeQuest.mutate({ questId: id })}
+                  onComplete={(id) => completeQuest.mutate({ questId: id, localDate: todayLocalDate })}
                   onEdit={handleEditQuest}
                   onDelete={handleDeleteQuest}
                   onUncomplete={(id) => uncompleteQuest.mutate({ questId: id })}

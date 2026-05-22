@@ -111,11 +111,16 @@ export const coachRouter = router({
    * GET TODAY'S AI QUESTS
    * ---------------------
    * Fetches today's AI-generated quest batch, or generates if not exists.
+   * Accepts localDate from client to handle timezone correctly.
    */
   getTodayQuests: protectedProcedure
-    .query(async ({ ctx }) => {
-      const today = new Date();
-      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    .input(
+      z.object({
+        localDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD format
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const dateString = input.localDate;
 
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
@@ -140,11 +145,16 @@ export const coachRouter = router({
    * GENERATE DAILY QUESTS
    * ---------------------
    * Generates new AI quests for today. Only works if no batch exists for today.
+   * Accepts localDate from client to handle timezone correctly.
    */
   generateQuests: protectedProcedure
-    .mutation(async ({ ctx }) => {
-      const today = new Date();
-      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    .input(
+      z.object({
+        localDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD format
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const dateString = input.localDate;
 
       // Check if already generated today
       const existingBatch = await ctx.db.dailyQuestBatch.findUnique({
@@ -277,11 +287,16 @@ export const coachRouter = router({
    * ACCEPT ALL QUESTS
    * -----------------
    * Accepts all pending AI quests from today's batch.
+   * Accepts localDate from client to handle timezone correctly.
    */
   acceptAllQuests: protectedProcedure
-    .mutation(async ({ ctx }) => {
-      const today = new Date();
-      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    .input(
+      z.object({
+        localDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD format
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const dateString = input.localDate;
 
       const batch = await ctx.db.dailyQuestBatch.findUnique({
         where: {
@@ -330,11 +345,16 @@ export const coachRouter = router({
    * -----------------
    * Generates additional AI quests and appends them to today's batch.
    * Limited to 2 regenerations per day.
+   * Accepts localDate from client to handle timezone correctly.
    */
   regenerateQuests: protectedProcedure
-    .mutation(async ({ ctx }) => {
-      const today = new Date();
-      const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    .input(
+      z.object({
+        localDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD format
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const dateString = input.localDate;
 
       // Get existing batch
       const existingBatch = await ctx.db.dailyQuestBatch.findUnique({

@@ -1,6 +1,7 @@
 "use client";
 
 import { trpc } from "@/lib/trpc";
+import { getTodayLocalDateString } from "@/lib/date-utils";
 import { useState } from "react";
 
 /**
@@ -15,6 +16,7 @@ import { useState } from "react";
  */
 export function QuestList() {
   const [newQuestTitle, setNewQuestTitle] = useState("");
+  const localDate = getTodayLocalDateString();
 
   // Fetch quests - automatically handles loading, error, and data states
   const { data: quests, isLoading, refetch } = trpc.quest.getDaily.useQuery();
@@ -87,7 +89,7 @@ export function QuestList() {
             </div>
             <button
               onClick={() =>
-                completeQuest.mutate({ questId: quest.id })
+                completeQuest.mutate({ questId: quest.id, localDate })
               }
               disabled={completeQuest.isPending}
               className="px-3 py-1 bg-green-500 text-white text-sm rounded-lg disabled:opacity-50"

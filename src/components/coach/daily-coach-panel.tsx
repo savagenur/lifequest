@@ -1,11 +1,14 @@
 "use client";
 
 import { trpc } from "@/lib/trpc";
+import { getTodayLocalDateString } from "@/lib/date-utils";
 import { AIQuestCard } from "./ai-quest-card";
 import { Sparkles, RefreshCw, CheckCheck } from "lucide-react";
 
 export function DailyCoachPanel() {
-  const { data: batch, refetch, isLoading } = trpc.coach.getTodayQuests.useQuery();
+  const localDate = getTodayLocalDateString();
+  
+  const { data: batch, refetch, isLoading } = trpc.coach.getTodayQuests.useQuery({ localDate });
 
   const generateQuests = trpc.coach.generateQuests.useMutation({
     onSuccess: () => refetch(),
@@ -21,6 +24,10 @@ export function DailyCoachPanel() {
     },
   });
 
+  const acceptAll = trpc.coach.acceptAllQuests.useMutation({
+    onSuccess: () => refetch(),
+  });
+
   const acceptQuest = trpc.coach.acceptQuest.useMutation({
     onSuccess: () => refetch(),
   });
@@ -30,10 +37,6 @@ export function DailyCoachPanel() {
   });
 
   const undoSkipQuest = trpc.coach.undoSkipQuest.useMutation({
-    onSuccess: () => refetch(),
-  });
-
-  const acceptAll = trpc.coach.acceptAllQuests.useMutation({
     onSuccess: () => refetch(),
   });
 
@@ -78,7 +81,7 @@ export function DailyCoachPanel() {
         )}
         
         <button
-          onClick={() => generateQuests.mutate()}
+          onClick={() => generateQuests.mutate({ localDate })}
           disabled={generateQuests.isPending}
           className="w-full py-3 bg-white text-purple-600 font-medium rounded-lg hover:bg-purple-50 disabled:opacity-50 flex items-center justify-center gap-2"
         >
@@ -109,7 +112,7 @@ export function DailyCoachPanel() {
           </div>
           {/* Regenerate button - always visible */}
           <button
-            onClick={() => regenerateQuests.mutate()}
+            onClick={() => regenerateQuests.mutate({ localDate })}
             disabled={regenerateQuests.isPending || !canRegenerate}
             className="px-3 py-1 text-xs bg-white/20 hover:bg-white/30 rounded-lg transition-colors flex items-center gap-1 disabled:opacity-50"
           >
@@ -135,7 +138,7 @@ export function DailyCoachPanel() {
       {/* Accept All button */}
       {pendingQuests.length > 1 && (
         <button
-          onClick={() => acceptAll.mutate()}
+          onClick={() => acceptAll.mutate({ localDate })}
           disabled={acceptAll.isPending}
           className="w-full py-2 bg-primary-light text-primary font-medium rounded-lg hover:opacity-80 disabled:opacity-50 flex items-center justify-center gap-2"
         >

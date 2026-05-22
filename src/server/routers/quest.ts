@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { router, protectedProcedure } from "../trpc";
 import { Difficulty, Category } from "@/generated/prisma/client";
+import { parseLocalDate, getDaysDifference } from "@/lib/date-utils";
 
 /**
  * Quest Router
@@ -91,6 +92,7 @@ export const questRouter = router({
     .input(
       z.object({
         questId: z.string(),
+        localDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD format from client
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -112,9 +114,8 @@ export const questRouter = router({
 
       const user = quest.user;
 
-      // Calculate streak
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // Calculate streak using client's local date
+      const today = parseLocalDate(input.localDate);
       
       let newStreak = 1;
       let newLongestStreak = user.longestStreak;
@@ -123,7 +124,7 @@ export const questRouter = router({
         const lastActive = new Date(user.lastActiveDate);
         lastActive.setHours(0, 0, 0, 0);
         
-        const diffDays = Math.floor((today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = getDaysDifference(today, lastActive);
         
         if (diffDays === 0) {
           // Same day, keep current streak
