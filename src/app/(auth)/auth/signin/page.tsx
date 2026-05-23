@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -9,12 +10,29 @@ import { SocialButtons } from "@/components/auth/social-buttons";
 import { FormError } from "@/components/auth/form-error";
 import { login } from "@/lib/auth-actions";
 
+const errorMessages: Record<string, string> = {
+  OAuthAccountNotLinked:
+    "This email is already associated with another sign-in method. Please use your original sign-in method.",
+  OAuthSignin: "Could not start the sign-in process. Please try again.",
+  OAuthCallback: "Something went wrong during sign-in. Please try again.",
+  OAuthCreateAccount: "Could not create your account. Please try again.",
+  Callback: "Something went wrong. Please try again.",
+  AccessDenied: "Access denied. You do not have permission to sign in.",
+  Configuration: "Server configuration error. Please contact support.",
+  Default: "An unexpected error occurred. Please try again.",
+};
+
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const errorParam = searchParams.get("error");
+  const initialError = errorParam
+    ? errorMessages[errorParam] || errorMessages.Default
+    : "";
+  const [error, setError] = useState(initialError);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
