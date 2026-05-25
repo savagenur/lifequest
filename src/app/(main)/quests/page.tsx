@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
-import { trpc } from "@/lib/trpc";
-import { formatLocalDate, getTodayLocalDateString } from "@/lib/date-utils";
-import { QuestCard } from "@/components/ui/quest-card";
 import { CelebrationModal } from "@/components/ui/celebration-modal";
-import { Plus, X, ChevronDown, Trophy } from "lucide-react";
+import { QuestCard } from "@/components/ui/quest-card";
+import { formatLocalDate, getTodayLocalDateString } from "@/lib/date-utils";
+import { trpc } from "@/lib/trpc";
+import { ChevronDown, FileText, Plus, Trophy, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const categories = [
   { value: "ALL", label: "All", icon: "🎯" },
@@ -593,7 +593,7 @@ export default function QuestsPage() {
 
         {activeCount === 0 && completedTodayCount === 0 && (
           <div className="text-center py-12 bg-surface rounded-xl border border-border">
-            <Plus className="w-12 h-12 mx-auto text-text-muted mb-3" />
+            <FileText className="w-12 h-12 mx-auto text-text-muted mb-3" />
             <p className="text-text-muted">
               {isToday(selectedDate)
                 ? "No quests for today. Tap + to create one!"
