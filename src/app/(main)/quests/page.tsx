@@ -111,7 +111,8 @@ export default function QuestsPage() {
 
   const [achievementQueue, setAchievementQueue] = useState<string[]>([]);
   const [isShowingAchievement, setIsShowingAchievement] = useState(false);
-  const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: "" });
+  const [toast, setToast] = useState<{ show: boolean; message: string; type?: "success" | "motivation" }>({ show: false, message: "" });
+  const hasShownMotivationRef = useRef(false);
 
   const utils = trpc.useUtils();
   
@@ -205,8 +206,8 @@ export default function QuestsPage() {
         ];
         const randomMessage = encouragingMessages[Math.floor(Math.random() * encouragingMessages.length)];
         
-        setToast({ show: true, message: randomMessage });
-        setTimeout(() => setToast({ show: false, message: "" }), 2000);
+        setToast({ show: true, message: randomMessage, type: "success" });
+        setTimeout(() => setToast({ show: false, message: "" }), 2500);
       }
     },
   });
@@ -253,51 +254,66 @@ export default function QuestsPage() {
     }
   };
 
-  // Get motivational message based on time of day and streak (memoized to avoid impure Math.random)
-  const motivationalMessage = useMemo(() => {
-    const hour = new Date().getHours();
-    const streak = user?.currentStreak ?? 0;
-    
-    const timeMessages = {
-      morning: [
-        "Rise and shine! Let's conquer today's quests! 🌅",
-        "Morning warrior! Your journey begins now. ⚔️",
-        "Start strong, finish stronger! 💪",
-      ],
-      afternoon: [
-        "Keep the momentum going! 🚀",
-        "Halfway there, you're doing great! 🌟",
-        "Every quest completed is a victory! 🎯",
-      ],
-      evening: [
-        "Finish strong today! 🌙",
-        "One last push before rest! 💫",
-        "End the day with accomplishment! ✨",
-      ],
-    };
+  // Show motivational toast once every 12 hours
+  useEffect(() => {
+    if (user && !hasShownMotivationRef.current && isToday(selectedDate)) {
+      // Check localStorage for last shown time
+      const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+      const lastShownKey = "lifequest_motivation_last_shown";
+      const lastShown = localStorage.getItem(lastShownKey);
+      const now = Date.now();
+      
+      if (lastShown && now - parseInt(lastShown, 10) < TWELVE_HOURS_MS) {
+        // Already shown within last 12 hours, skip
+        hasShownMotivationRef.current = true;
+        return;
+      }
+      
+      hasShownMotivationRef.current = true;
+      localStorage.setItem(lastShownKey, now.toString());
+      
+      const hour = new Date().getHours();
+      const streak = user.currentStreak ?? 0;
+      
+      const timeMessages = {
+        morning: [
+          "Rise and shine! Let's conquer today's quests! 🌅",
+          "Morning warrior! Your journey begins now. ⚔️",
+          "Start strong, finish stronger! 💪",
+        ],
+        afternoon: [
+          "Keep the momentum going! 🚀",
+          "Halfway there, you're doing great! 🌟",
+          "Every quest completed is a victory! 🎯",
+        ],
+        evening: [
+          "Finish strong today! 🌙",
+          "One last push before rest! 💫",
+          "End the day with accomplishment! ✨",
+        ],
+      };
 
-    const timeOfDay = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
-    const messages = timeMessages[timeOfDay];
-    // Use hour to deterministically select message instead of Math.random
-    const messageIndex = hour % messages.length;
-    const selectedMessage = messages[messageIndex];
+      const timeOfDay = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
+      const messages = timeMessages[timeOfDay];
+      const messageIndex = hour % messages.length;
+      let selectedMessage = messages[messageIndex];
 
-    if (streak >= 7) {
-      return `${selectedMessage} 🔥 ${streak}-day streak!`;
-    } else if (streak >= 3) {
-      return `${selectedMessage} Keep your ${streak}-day streak alive!`;
+      if (streak >= 7) {
+        selectedMessage = `${selectedMessage} 🔥 ${streak}-day streak!`;
+      } else if (streak >= 3) {
+        selectedMessage = `${selectedMessage} Keep your ${streak}-day streak alive!`;
+      }
+
+      // Use setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setToast({ show: true, message: selectedMessage, type: "motivation" });
+        setTimeout(() => setToast({ show: false, message: "" }), 4000);
+      }, 500);
     }
-    
-    return selectedMessage;
-  }, [user?.currentStreak]);
+  }, [user, selectedDate]);
 
   return (
     <div className="pb-24 space-y-4">
-      {/* Motivational Banner */}
-      <div className="bg-linear-to-r from-purple-500 to-blue-500 rounded-xl p-4 text-white">
-        <p className="text-sm font-medium">{motivationalMessage}</p>
-      </div>
-
       {/* Date Navigation Widget */}
       <div
         ref={dateScrollRef}
@@ -648,8 +664,14 @@ export default function QuestsPage() {
 
       {/* Toast Notification */}
       {toast.show && (
-        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-surface border border-border rounded-lg px-4 py-2 shadow-lg z-50 animate-in slide-in-from-bottom-4 duration-200">
-          <p className="text-sm text-text-primary">{toast.message}</p>
+        <div className={`fixed top-20 left-1/2 -translate-x-1/2 rounded-xl px-5 py-3 shadow-xl z-50 animate-in slide-in-from-top-4 fade-in duration-300 max-w-[90%] ${
+          toast.type === "motivation" 
+            ? "bg-linear-to-r from-purple-500 to-blue-500 text-white" 
+            : "bg-surface border border-border"
+        }`}>
+          <p className={`text-sm font-medium text-center ${
+            toast.type === "motivation" ? "text-white" : "text-text-primary"
+          }`}>{toast.message}</p>
         </div>
       )}
 

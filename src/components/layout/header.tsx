@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { AvatarDisplay } from "@/components/ui/avatar-display";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Flame } from "lucide-react";
@@ -53,6 +54,23 @@ export function Header({
   const actualLevel = calculateLevel(userXp);
   const xpInCurrentLevel = calculateLevelProgress(userXp);
   const streakAtRisk = isStreakAtRisk(lastActiveDate);
+  
+  const [showStreakToast, setShowStreakToast] = useState(false);
+  const hasShownStreakToastRef = useRef(false);
+
+  // Show streak warning toast once when at risk
+  useEffect(() => {
+    if (streakAtRisk && currentStreak > 0 && !hasShownStreakToastRef.current) {
+      hasShownStreakToastRef.current = true;
+      // Delay to let page load first
+      const showTimer = setTimeout(() => {
+        setShowStreakToast(true);
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => setShowStreakToast(false), 5000);
+      }, 1000);
+      return () => clearTimeout(showTimer);
+    }
+  }, [streakAtRisk, currentStreak]);
 
   return (
     <header className="bg-surface border-b border-border sticky top-0 z-40">
@@ -91,12 +109,19 @@ export function Header({
             </div>
           </div>
         </div>
-        {streakAtRisk && currentStreak > 0 && (
-          <div className="mt-2 text-center text-xs text-white bg-orange-500 py-1 px-2 rounded-lg">
-            🔥 Complete a quest today to keep your {currentStreak}-day streak alive!
-          </div>
-        )}
       </div>
+
+      {/* Streak Warning Toast */}
+      {showStreakToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
+          <div className="bg-linear-to-r from-orange-500 to-red-500 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-2">
+            <Flame className="w-4 h-4 animate-pulse" />
+            <span className="text-sm font-medium">
+              Complete a quest today to keep your {currentStreak}-day streak alive!
+            </span>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

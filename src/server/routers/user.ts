@@ -20,7 +20,7 @@ export const userRouter = router({
           avatar: true,
           questCompletions: {
             orderBy: { completedAt: "desc" },
-            take: 10,
+            take: 6,
             include: {
               quest: true,
             },

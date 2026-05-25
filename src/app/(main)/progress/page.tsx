@@ -258,7 +258,7 @@ export default function ProgressPage() {
           </div>
           {user?.questCompletions && user.questCompletions.length > 0 && (
             <span className="text-xs text-text-muted">
-              Last {user.questCompletions.length} completions
+              Last {Math.min(user.questCompletions.length, 6)}
             </span>
           )}
         </div>
