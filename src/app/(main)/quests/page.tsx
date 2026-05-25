@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarPicker } from "@/components/ui/calendar-picker";
 import { CelebrationModal } from "@/components/ui/celebration-modal";
 import { QuestCard } from "@/components/ui/quest-card";
 import { formatLocalDate, getTodayLocalDateString } from "@/lib/date-utils";
@@ -113,6 +114,7 @@ export default function QuestsPage() {
   const [isShowingAchievement, setIsShowingAchievement] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type?: "success" | "motivation" }>({ show: false, message: "" });
   const hasShownMotivationRef = useRef(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const utils = trpc.useUtils();
   
@@ -315,39 +317,57 @@ export default function QuestsPage() {
   return (
     <div className="pb-24 space-y-4">
       {/* Date Navigation Widget */}
-      <div
-        ref={dateScrollRef}
-        className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {dateRange.map((date) => {
-          const dateKey = formatDateKey(date);
-          const isTodayDate = isToday(date);
-          const isSelected = formatDateKey(selectedDate) === dateKey;
+      <div className="flex items-center gap-2">
+        {/* Calendar button hidden for now */}
+        {/* <button
+          onClick={() => setShowCalendar(true)}
+          className="flex items-center justify-center w-11 h-11 rounded-xl bg-surface border border-border text-text-secondary hover:border-primary hover:text-primary transition-colors shrink-0"
+          aria-label="Open calendar"
+        >
+          <Calendar className="w-5 h-5" />
+        </button> */}
+        <div
+          ref={dateScrollRef}
+          className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {dateRange.map((date) => {
+            const dateKey = formatDateKey(date);
+            const isTodayDate = isToday(date);
+            const isSelected = formatDateKey(selectedDate) === dateKey;
 
-          return (
-            <button
-              key={dateKey}
-              ref={isTodayDate ? todayRef : null}
-              onClick={() => setSelectedDate(date)}
-              className={`flex flex-col items-center min-w-[52px] px-2 py-2 rounded-xl transition-all ${
-                isSelected
-                  ? "bg-primary text-white shadow-md"
-                  : isTodayDate
-                  ? "bg-primary-light text-primary border border-primary"
-                  : "bg-surface text-text-secondary border border-border hover:border-primary/50"
-              }`}
-            >
-              <span className={`text-xs font-medium ${isSelected ? "text-white/80" : "text-text-muted"}`}>
-                {getDayName(date)}
-              </span>
-              <span className={`text-lg font-bold ${isSelected ? "text-white" : ""}`}>
-                {date.getDate()}
-              </span>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={dateKey}
+                ref={isTodayDate ? todayRef : null}
+                onClick={() => setSelectedDate(date)}
+                className={`flex flex-col items-center min-w-[52px] px-2 py-2 rounded-xl transition-all ${
+                  isSelected
+                    ? "bg-primary text-white shadow-md"
+                    : isTodayDate
+                    ? "bg-primary-light text-primary border border-primary"
+                    : "bg-surface text-text-secondary border border-border hover:border-primary/50"
+                }`}
+              >
+                <span className={`text-xs font-medium ${isSelected ? "text-white/80" : "text-text-muted"}`}>
+                  {getDayName(date)}
+                </span>
+                <span className={`text-lg font-bold ${isSelected ? "text-white" : ""}`}>
+                  {date.getDate()}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {/* Calendar Picker Modal */}
+      <CalendarPicker
+        isOpen={showCalendar}
+        onClose={() => setShowCalendar(false)}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+      />
 
       {/* Create Quest Dialog */}
       {showCreateForm && (

@@ -4,6 +4,7 @@ import "./globals.css";
 import { TRPCProvider } from "@/lib/trpc-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +35,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <SessionProvider>
-            <TRPCProvider>{children}</TRPCProvider>
+            <TRPCProvider>
+              <ServiceWorkerRegister />
+              {children}
+            </TRPCProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>

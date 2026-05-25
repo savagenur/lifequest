@@ -3,7 +3,10 @@
 import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { LogOut, Pencil, Camera, X, Check, Upload, Loader2, Plus, Target, Trash2 } from "lucide-react";
+import { FeedbackForm } from "@/components/ui/feedback-form";
+import { NotificationSettings } from "@/components/ui/notification-settings";
+import { SupportCard } from "@/components/ui/support-card";
+import { LogOut, Pencil, Camera, X, Check, Upload, Loader2, Plus, Target, Trash2, MessageSquare } from "lucide-react";
 import { logout } from "@/lib/auth-actions";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import Image from "next/image";
@@ -32,6 +35,7 @@ export default function ProfilePage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [goalForm, setGoalForm] = useState({ title: "", targetValue: "", unit: "XP" });
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -535,9 +539,23 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* Support Card */}
+      <SupportCard buyMeCoffeeUrl="https://buymeacoffee.com/lifequestpro" />
+
       {/* Settings */}
       <div className="bg-surface rounded-xl border border-border divide-y divide-border">
         <ThemeToggle />
+        <NotificationSettings />
+        <button
+          onClick={() => setShowFeedbackForm(true)}
+          className="w-full flex items-center gap-3 p-4 text-left hover:bg-surface-hover transition-colors"
+        >
+          <MessageSquare className="w-5 h-5 text-text-muted" />
+          <div className="flex-1">
+            <span className="text-text-primary">Send Feedback</span>
+            <p className="text-xs text-text-muted">Help us improve LifeQuest</p>
+          </div>
+        </button>
         <form action={logout} className="w-full">
           <button
             type="submit"
@@ -548,6 +566,9 @@ export default function ProfilePage() {
           </button>
         </form>
       </div>
+
+      {/* Feedback Form Modal */}
+      <FeedbackForm isOpen={showFeedbackForm} onClose={() => setShowFeedbackForm(false)} />
     </div>
   );
 }

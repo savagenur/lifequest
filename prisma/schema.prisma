@@ -45,6 +45,8 @@ model User {
   dailyQuestBatches DailyQuestBatch[] // AI-generated daily quests
   userBadges        UserBadge[]       // Badges user has earned
   goals             Goal[]            // User's progress goals
+  feedback          Feedback[]        // User's feedback submissions
+  pushSubscriptions PushSubscription[] // User's push notification subscriptions
 
   @@map("users") // Table name in PostgreSQL
 }
@@ -384,4 +386,47 @@ model Goal {
 
   @@index([userId])
   @@map("goals")
+}
+
+// ============================================
+// FEEDBACK SYSTEM MODELS
+// ============================================
+
+// User feedback for app improvement
+model Feedback {
+  id        String       @id @default(cuid())
+  type      FeedbackType
+  message   String
+  createdAt DateTime     @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("feedback")
+}
+
+enum FeedbackType {
+  BUG
+  FEATURE
+  GENERAL
+}
+
+// ============================================
+// PUSH NOTIFICATION MODELS
+// ============================================
+
+// Store user's push notification subscriptions
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String   // Public key
+  auth      String   // Auth secret
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
