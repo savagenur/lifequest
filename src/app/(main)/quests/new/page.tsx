@@ -13,10 +13,10 @@ const categories = [
 ] as const;
 
 const difficulties = [
-  { value: "EASY", label: "Easy", xp: 10 },
-  { value: "MEDIUM", label: "Medium", xp: 25 },
-  { value: "HARD", label: "Hard", xp: 50 },
-  { value: "EPIC", label: "Epic", xp: 100 },
+  { value: "EASY", label: "Easy", xp: 10, icon: "🌱" },
+  { value: "MEDIUM", label: "Medium", xp: 25, icon: "⚔️" },
+  { value: "HARD", label: "Hard", xp: 50, icon: "🛡️" },
+  { value: "EPIC", label: "Epic", xp: 100, icon: "🏆" },
 ] as const;
 
 type QuestFormData = {
@@ -39,7 +39,9 @@ function NewQuestContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [questForm, setQuestForm] = useState<QuestFormData>(defaultQuestForm);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
 
   // Get scheduled date from URL query param or use today
   const scheduledDate = searchParams.get("date") ?? new Date().toISOString().split("T")[0];
@@ -60,17 +62,19 @@ function NewQuestContent() {
     const viewport = window.visualViewport;
     if (!viewport) return;
 
-    const handleResize = () => {
-      const heightDiff = window.innerHeight - viewport.height;
-      setIsKeyboardVisible(heightDiff > 150);
+    const handleViewportChange = () => {
+      // Calculate keyboard height: difference between layout viewport and visual viewport
+      // Also account for any scroll offset of the visual viewport
+      const keyboardHeight = window.innerHeight - viewport.height - viewport.offsetTop;
+      setKeyboardOffset(keyboardHeight > 150 ? keyboardHeight : 0);
     };
 
-    viewport.addEventListener("resize", handleResize);
-    viewport.addEventListener("scroll", handleResize);
+    viewport.addEventListener("resize", handleViewportChange);
+    viewport.addEventListener("scroll", handleViewportChange);
 
     return () => {
-      viewport.removeEventListener("resize", handleResize);
-      viewport.removeEventListener("scroll", handleResize);
+      viewport.removeEventListener("resize", handleViewportChange);
+      viewport.removeEventListener("scroll", handleViewportChange);
     };
   }, []);
 
@@ -88,15 +92,22 @@ function NewQuestContent() {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
+      <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-5">
         <div>
           <label className="text-sm font-medium text-text-primary mb-2 block">Quest Title</label>
           <textarea
             rows={1}
             placeholder="What do you want to accomplish?"
             autoFocus
+            enterKeyHint="done"
             value={questForm.title}
             onChange={(e) => setQuestForm({ ...questForm, title: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                (e.target as HTMLTextAreaElement).blur();
+              }
+            }}
             className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text-primary placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none"
           />
         </div>
@@ -115,22 +126,37 @@ function NewQuestContent() {
         {/* Category Selection */}
         <div>
           <label className="text-sm font-medium text-text-primary mb-3 block">Category</label>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.value}
-                onClick={() => setQuestForm({ ...questForm, category: cat.value as typeof questForm.category })}
-                className={`px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 transition-all ${
-                  questForm.category === cat.value
-                    ? "bg-primary text-white shadow-md"
-                    : "bg-surface-secondary text-text-secondary hover:bg-surface-hover"
-                }`}
-              >
-                <span className="text-base">{cat.icon}</span>
-                <span className="font-medium">{cat.label}</span>
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+            className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text-primary flex items-center justify-between transition-all"
+          >
+            <span className="flex items-center gap-2">
+              <span className="text-base">{categories.find((c) => c.value === questForm.category)?.icon}</span>
+              <span className="font-medium">{categories.find((c) => c.value === questForm.category)?.label}</span>
+            </span>
+            <span className="text-text-muted">{showCategoryDropdown ? "▲" : "▼"}</span>
+          </button>
+          {showCategoryDropdown && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat.value}
+                  onClick={() => {
+                    setQuestForm({ ...questForm, category: cat.value as typeof questForm.category });
+                    setShowCategoryDropdown(false);
+                  }}
+                  className={`px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 transition-all ${
+                    questForm.category === cat.value
+                      ? "bg-primary text-white shadow-md"
+                      : "bg-surface-secondary text-text-secondary hover:bg-surface-hover"
+                  }`}
+                >
+                  <span className="text-base">{cat.icon}</span>
+                  <span className="font-medium">{cat.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Difficulty Selection */}
@@ -138,21 +164,37 @@ function NewQuestContent() {
           <label className="text-sm font-medium text-text-primary mb-3 block">
             Difficulty <span className="text-primary font-semibold">(+{selectedDifficulty?.xp} XP)</span>
           </label>
-          <div className="grid grid-cols-4 gap-2">
-            {difficulties.map((diff) => (
-              <button
-                key={diff.value}
-                onClick={() => setQuestForm({ ...questForm, difficulty: diff.value })}
-                className={`px-3 py-3 rounded-xl text-sm font-medium transition-all ${
-                  questForm.difficulty === diff.value
-                    ? "bg-primary text-white shadow-md"
-                    : "bg-surface-secondary text-text-secondary hover:bg-surface-hover"
-                }`}
-              >
-                {diff.label}
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => setShowDifficultyDropdown(!showDifficultyDropdown)}
+            className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text-primary flex items-center justify-between transition-all"
+          >
+            <span className="flex items-center gap-2">
+              <span className="text-base">{selectedDifficulty?.icon}</span>
+              <span className="font-medium">{selectedDifficulty?.label}</span>
+            </span>
+            <span className="text-text-muted">{showDifficultyDropdown ? "▲" : "▼"}</span>
+          </button>
+          {showDifficultyDropdown && (
+            <div className="mt-2 grid grid-cols-4 gap-2">
+              {difficulties.map((diff) => (
+                <button
+                  key={diff.value}
+                  onClick={() => {
+                    setQuestForm({ ...questForm, difficulty: diff.value });
+                    setShowDifficultyDropdown(false);
+                  }}
+                  className={`px-3 py-3 rounded-xl text-sm font-medium transition-all flex flex-col items-center gap-1 ${
+                    questForm.difficulty === diff.value
+                      ? "bg-primary text-white shadow-md"
+                      : "bg-surface-secondary text-text-secondary hover:bg-surface-hover"
+                  }`}
+                >
+                  <span className="text-lg">{diff.icon}</span>
+                  <span>{diff.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Recurring Toggle */}
@@ -178,9 +220,8 @@ function NewQuestContent() {
 
       {/* Pinned Bottom Buttons */}
       <div 
-        className={`p-4 border-t border-border bg-surface transition-all duration-200 ${
-          isKeyboardVisible ? "fixed bottom-0 left-0 right-0 pb-4" : ""
-        }`}
+        className="fixed bottom-0 left-0 right-0 p-2 border-t border-border bg-surface transition-all duration-200"
+        style={{ bottom: keyboardOffset }}
       >
         <div className="flex gap-3">
           <button

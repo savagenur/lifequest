@@ -23,6 +23,7 @@ export default function MainLayout({
   
   // Hide header on profile page since it has its own profile section
   const showHeader = pathname !== "/profile" && pathname !== "/quests/new";
+  const showBottomNav = pathname !== "/quests/new";
   
   // Show onboarding for new users (not loading, user exists, onboarding not complete)
   const showOnboarding = !isLoading && user && !user.onboardingComplete;
@@ -53,7 +54,7 @@ export default function MainLayout({
         {children}
       </main>
       
-      <BottomNav />
+      {showBottomNav && <BottomNav />}
     </div>
   );
 }
