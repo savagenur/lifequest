@@ -22,7 +22,7 @@ export default function MainLayout({
   });
   
   // Hide header on profile page since it has its own profile section
-  const showHeader = pathname !== "/profile";
+  const showHeader = pathname !== "/profile" && pathname !== "/quests/new";
   
   // Show onboarding for new users (not loading, user exists, onboarding not complete)
   const showOnboarding = !isLoading && user && !user.onboardingComplete;
