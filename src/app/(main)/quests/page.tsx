@@ -374,7 +374,7 @@ export default function QuestsPage() {
       {/* Search and Filter */}
       <div className="space-y-3">
         {/* Search Bar */}
-        <div className="relative">
+        {/* <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
           <input
             type="text"
@@ -391,7 +391,7 @@ export default function QuestsPage() {
               <X className="w-3.5 h-3.5 text-text-muted" />
             </button>
           )}
-        </div>
+        </div> */}
 
         {/* Category Filter */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" style={{ scrollbarWidth: "none" }}>

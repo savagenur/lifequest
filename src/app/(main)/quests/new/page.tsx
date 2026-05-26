@@ -2,7 +2,7 @@
 
 import { trpc } from "@/lib/trpc";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 const categories = [
   { value: "HEALTH", label: "Health", icon: "💪" },
@@ -35,7 +35,7 @@ const defaultQuestForm: QuestFormData = {
   isRecurring: false,
 };
 
-export default function NewQuestPage() {
+function NewQuestContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [questForm, setQuestForm] = useState<QuestFormData>(defaultQuestForm);
@@ -210,5 +210,17 @@ export default function NewQuestPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NewQuestPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-text-muted">Loading...</div>
+      </div>
+    }>
+      <NewQuestContent />
+    </Suspense>
   );
 }
