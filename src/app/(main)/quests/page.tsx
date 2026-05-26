@@ -119,6 +119,7 @@ export default function QuestsPage() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<"ALL" | "HEALTH" | "LEARNING" | "CAREER" | "PERSONAL" | "FINANCE">("ALL");
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const utils = trpc.useUtils();
   
@@ -146,6 +147,26 @@ export default function QuestsPage() {
       const scrollLeft = buttonRect.left - containerRect.left - containerRect.width / 2 + buttonRect.width / 2;
       container.scrollLeft += scrollLeft;
     }
+  }, []);
+
+  // Detect keyboard visibility using visualViewport API
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const handleResize = () => {
+      // Keyboard is visible when viewport height is significantly less than window height
+      const heightDiff = window.innerHeight - viewport.height;
+      setIsKeyboardVisible(heightDiff > 150);
+    };
+
+    viewport.addEventListener("resize", handleResize);
+    viewport.addEventListener("scroll", handleResize);
+
+    return () => {
+      viewport.removeEventListener("resize", handleResize);
+      viewport.removeEventListener("scroll", handleResize);
+    };
   }, []);
 
   const createQuest = trpc.quest.create.useMutation({
@@ -461,12 +482,13 @@ export default function QuestsPage() {
           <div className="flex-1 overflow-y-auto p-4 space-y-5">
             <div>
               <label className="text-sm font-medium text-text-primary mb-2 block">Quest Title</label>
-              <input
+              <textarea
+                rows={1}
                 placeholder="What do you want to accomplish?"
                 autoFocus
                 value={questForm.title}
                 onChange={(e) => setQuestForm({ ...questForm, title: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text-primary placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text-primary placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none"
               />
             </div>
             
@@ -545,8 +567,12 @@ export default function QuestsPage() {
             </div>
           </div>
 
-          {/* Pinned Bottom Buttons - above bottom navbar */}
-          <div className="p-4 pb-17 border-t border-border bg-surface">
+          {/* Pinned Bottom Buttons - floats with keyboard, stays above navbar when hidden */}
+          <div 
+            className={`p-4 border-t border-border bg-surface transition-all duration-200 ${
+              isKeyboardVisible ? "fixed bottom-0 left-0 right-0 pb-4" : "pb-17"
+            }`}
+          >
             <div className="flex gap-3">
               <button
                 onClick={() => {

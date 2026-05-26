@@ -6,7 +6,19 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { FeedbackForm } from "@/components/ui/feedback-form";
 import { NotificationSettings } from "@/components/ui/notification-settings";
 import { SupportCard } from "@/components/ui/support-card";
-import { LogOut, Pencil, Camera, X, Check, Upload, Loader2, Plus, Target, Trash2, MessageSquare } from "lucide-react";
+import {
+  LogOut,
+  Pencil,
+  Camera,
+  X,
+  Check,
+  Upload,
+  Loader2,
+  Plus,
+  Target,
+  Trash2,
+  MessageSquare,
+} from "lucide-react";
 import { logout } from "@/lib/auth-actions";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import Image from "next/image";
@@ -34,7 +46,11 @@ export default function ProfilePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showGoalForm, setShowGoalForm] = useState(false);
-  const [goalForm, setGoalForm] = useState({ title: "", targetValue: "", unit: "XP" });
+  const [goalForm, setGoalForm] = useState({
+    title: "",
+    targetValue: "",
+    unit: "XP",
+  });
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -128,7 +144,7 @@ export default function ProfilePage() {
               }
             },
             "image/jpeg",
-            0.85
+            0.85,
           );
         } else {
           reject(new Error("Canvas context not available"));
@@ -153,9 +169,13 @@ export default function ProfilePage() {
     try {
       // Resize image before upload
       const resizedBlob = await resizeImage(file);
-      const resizedFile = new File([resizedBlob], file.name.replace(/\.[^.]+$/, ".jpg"), {
-        type: "image/jpeg",
-      });
+      const resizedFile = new File(
+        [resizedBlob],
+        file.name.replace(/\.[^.]+$/, ".jpg"),
+        {
+          type: "image/jpeg",
+        },
+      );
 
       const formData = new FormData();
       formData.append("file", resizedFile);
@@ -308,7 +328,9 @@ export default function ProfilePage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface rounded-xl p-4 w-full max-w-md space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-text-primary">Edit Profile Picture</h3>
+              <h3 className="font-semibold text-text-primary">
+                Edit Profile Picture
+              </h3>
               <button
                 onClick={() => {
                   setIsEditingAvatar(false);
@@ -335,7 +357,9 @@ export default function ProfilePage() {
                     className="object-cover w-full h-full"
                   />
                 ) : (
-                  <span className="text-2xl font-bold text-text-muted">{initials}</span>
+                  <span className="text-2xl font-bold text-text-muted">
+                    {initials}
+                  </span>
                 )}
               </div>
             </div>
@@ -409,13 +433,20 @@ export default function ProfilePage() {
         <div className="p-4 space-y-3">
           {goals && goals.length > 0 ? (
             goals.map((goal) => {
-              const percentage = Math.min((goal.currentValue / goal.targetValue) * 100, 100);
+              const percentage = Math.min(
+                (goal.currentValue / goal.targetValue) * 100,
+                100,
+              );
               const getGoalIcon = () => {
                 switch (goal.unit) {
-                  case "XP": return "⚡";
-                  case "quests": return "🎯";
-                  case "days": return "🔥";
-                  default: return "📊";
+                  case "XP":
+                    return "⚡";
+                  case "quests":
+                    return "🎯";
+                  case "days":
+                    return "🔥";
+                  default:
+                    return "📊";
                 }
               };
               const getGoalColor = () => {
@@ -424,7 +455,7 @@ export default function ProfilePage() {
                 if (percentage >= 50) return "blue";
                 return "purple";
               };
-              
+
               return (
                 <div
                   key={goal.id}
@@ -438,11 +469,15 @@ export default function ProfilePage() {
                     <div className="flex items-start gap-3 flex-1">
                       <span className="text-2xl">{getGoalIcon()}</span>
                       <div className="flex-1">
-                        <p className={`font-medium ${goal.isCompleted ? "text-success line-through" : "text-text-primary"}`}>
+                        <p
+                          className={`font-medium ${goal.isCompleted ? "text-success line-through" : "text-text-primary"}`}
+                        >
                           {goal.title}
                         </p>
                         {goal.description && (
-                          <p className="text-xs text-text-muted mt-0.5">{goal.description}</p>
+                          <p className="text-xs text-text-muted mt-0.5">
+                            {goal.description}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -457,7 +492,9 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-text-muted">Progress</span>
-                      <span className={`font-semibold ${goal.isCompleted ? "text-success" : "text-text-primary"}`}>
+                      <span
+                        className={`font-semibold ${goal.isCompleted ? "text-success" : "text-text-primary"}`}
+                      >
                         {goal.currentValue}/{goal.targetValue} {goal.unit}
                       </span>
                     </div>
@@ -476,7 +513,9 @@ export default function ProfilePage() {
             <div className="text-center py-8 text-text-muted">
               <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p className="text-sm font-medium">No goals yet</p>
-              <p className="text-xs mt-1">Set a target to track your progress</p>
+              <p className="text-xs mt-1">
+                Set a target to track your progress
+              </p>
             </div>
           )}
         </div>
@@ -499,22 +538,29 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            <input
+            <textarea
               autoFocus
               placeholder="Goal title..."
+              rows={1}
               value={goalForm.title}
-              onChange={(e) => setGoalForm({ ...goalForm, title: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted"
+              onChange={(e) =>
+                setGoalForm({ ...goalForm, title: e.target.value })
+              }
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted resize-none"
             />
 
             <div>
-              <label className="text-sm text-text-muted mb-2 block">Target Value</label>
-              <input
-                type="text"
+              <label className="text-sm text-text-muted mb-2 block">
+                Target Value
+              </label>
+              <textarea
                 placeholder="100"
+                rows={1}
                 value={goalForm.targetValue}
-                onChange={(e) => setGoalForm({ ...goalForm, targetValue: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary mb-3"
+                onChange={(e) =>
+                  setGoalForm({ ...goalForm, targetValue: e.target.value })
+                }
+                className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary mb-3 resize-none"
               />
               <label className="text-sm text-text-muted mb-2 block">Unit</label>
               <div className="flex rounded-xl bg-surface-secondary p-1 gap-1">
@@ -526,7 +572,9 @@ export default function ProfilePage() {
                   <button
                     key={unit.value}
                     type="button"
-                    onClick={() => setGoalForm({ ...goalForm, unit: unit.value })}
+                    onClick={() =>
+                      setGoalForm({ ...goalForm, unit: unit.value })
+                    }
                     className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                       goalForm.unit === unit.value
                         ? "bg-primary text-white shadow-sm"
@@ -543,14 +591,26 @@ export default function ProfilePage() {
             <button
               onClick={() => {
                 const targetValue = parseInt(goalForm.targetValue);
-                if (!goalForm.title.trim() || !goalForm.targetValue.trim() || isNaN(targetValue) || targetValue <= 0) return;
+                if (
+                  !goalForm.title.trim() ||
+                  !goalForm.targetValue.trim() ||
+                  isNaN(targetValue) ||
+                  targetValue <= 0
+                )
+                  return;
                 createGoal.mutate({
                   title: goalForm.title,
                   targetValue: targetValue,
                   unit: goalForm.unit,
                 });
               }}
-              disabled={!goalForm.title.trim() || !goalForm.targetValue.trim() || isNaN(parseInt(goalForm.targetValue)) || parseInt(goalForm.targetValue) <= 0 || createGoal.isPending}
+              disabled={
+                !goalForm.title.trim() ||
+                !goalForm.targetValue.trim() ||
+                isNaN(parseInt(goalForm.targetValue)) ||
+                parseInt(goalForm.targetValue) <= 0 ||
+                createGoal.isPending
+              }
               className="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {createGoal.isPending ? "Creating..." : "Create Goal"}
@@ -594,7 +654,8 @@ export default function ProfilePage() {
         </div>
         <div className="p-4">
           <p className="text-sm text-text-muted mb-4">
-            Once you delete your account, there is no going back. All your quests, progress, and achievements will be permanently deleted.
+            Once you delete your account, there is no going back. All your
+            quests, progress, and achievements will be permanently deleted.
           </p>
           <button
             onClick={() => setShowDeleteConfirm(true)}
@@ -609,9 +670,13 @@ export default function ProfilePage() {
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface rounded-xl p-6 w-full max-w-sm space-y-4">
-            <h3 className="font-semibold text-text-primary text-lg">Delete Account</h3>
+            <h3 className="font-semibold text-text-primary text-lg">
+              Delete Account
+            </h3>
             <p className="text-sm text-text-muted">
-              This action cannot be undone. Type <span className="font-mono font-semibold text-error">DELETE</span> to confirm.
+              This action cannot be undone. Type{" "}
+              <span className="font-mono font-semibold text-error">DELETE</span>{" "}
+              to confirm.
             </p>
             <input
               type="text"
@@ -636,7 +701,9 @@ export default function ProfilePage() {
                     deleteAccount.mutate();
                   }
                 }}
-                disabled={deleteConfirmText !== "DELETE" || deleteAccount.isPending}
+                disabled={
+                  deleteConfirmText !== "DELETE" || deleteAccount.isPending
+                }
                 className="flex-1 px-4 py-2 rounded-lg bg-error text-white hover:bg-error/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deleteAccount.isPending ? "Deleting..." : "Delete Account"}
@@ -647,7 +714,10 @@ export default function ProfilePage() {
       )}
 
       {/* Feedback Form Modal */}
-      <FeedbackForm isOpen={showFeedbackForm} onClose={() => setShowFeedbackForm(false)} />
+      <FeedbackForm
+        isOpen={showFeedbackForm}
+        onClose={() => setShowFeedbackForm(false)}
+      />
     </div>
   );
 }
