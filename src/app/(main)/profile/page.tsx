@@ -36,6 +36,8 @@ export default function ProfilePage() {
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [goalForm, setGoalForm] = useState({ title: "", targetValue: "", unit: "XP" });
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,6 +47,12 @@ export default function ProfilePage() {
       setIsEditingName(false);
       setIsEditingAvatar(false);
       setPreviewUrl(null);
+    },
+  });
+
+  const deleteAccount = trpc.user.deleteAccount.useMutation({
+    onSuccess: () => {
+      window.location.href = "/auth/signin";
     },
   });
 
@@ -196,7 +204,7 @@ export default function ProfilePage() {
         <div className="flex justify-center mb-4">
           <div className="relative inline-block">
             <div
-              className="w-28 h-28 rounded-full bg-gradient-to-br from-purple-500 to-blue-500
+              className="w-28 h-28 rounded-full bg-linear-to-br from-purple-500 to-blue-500
                 flex items-center justify-center text-white font-bold text-2xl
                 ring-2 ring-white dark:ring-gray-800 shadow-lg overflow-hidden"
             >
@@ -491,7 +499,7 @@ export default function ProfilePage() {
             </div>
 
             <input
-              type="text"
+              autoFocus
               placeholder="Goal title..."
               value={goalForm.title}
               onChange={(e) => setGoalForm({ ...goalForm, title: e.target.value })}
@@ -500,23 +508,34 @@ export default function ProfilePage() {
 
             <div>
               <label className="text-sm text-text-muted mb-2 block">Target Value</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="100"
-                  value={goalForm.targetValue}
-                  onChange={(e) => setGoalForm({ ...goalForm, targetValue: e.target.value })}
-                  className="flex-1 px-3 py-2 rounded-lg border border-border bg-surface text-text-primary"
-                />
-                <select
-                  value={goalForm.unit}
-                  onChange={(e) => setGoalForm({ ...goalForm, unit: e.target.value })}
-                  className="px-3 py-2 rounded-lg border border-border bg-surface text-text-primary"
-                >
-                  <option value="XP">XP</option>
-                  <option value="quests">Quests</option>
-                  <option value="days">Days</option>
-                </select>
+              <input
+                type="text"
+                placeholder="100"
+                value={goalForm.targetValue}
+                onChange={(e) => setGoalForm({ ...goalForm, targetValue: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary mb-3"
+              />
+              <label className="text-sm text-text-muted mb-2 block">Unit</label>
+              <div className="flex rounded-xl bg-surface-secondary p-1 gap-1">
+                {[
+                  { value: "XP", label: "XP", icon: "⚡" },
+                  { value: "quests", label: "Quests", icon: "🎯" },
+                  { value: "days", label: "Days", icon: "🔥" },
+                ].map((unit) => (
+                  <button
+                    key={unit.value}
+                    type="button"
+                    onClick={() => setGoalForm({ ...goalForm, unit: unit.value })}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      goalForm.unit === unit.value
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-text-secondary hover:text-text-primary hover:bg-surface-hover"
+                    }`}
+                  >
+                    <span>{unit.icon}</span>
+                    <span>{unit.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -566,6 +585,65 @@ export default function ProfilePage() {
           </button>
         </form>
       </div>
+
+      {/* Danger Zone */}
+      <div className="bg-surface rounded-xl border border-error/20 overflow-hidden">
+        <div className="p-4 border-b border-error/20 bg-error/5">
+          <h3 className="font-semibold text-error">Danger Zone</h3>
+        </div>
+        <div className="p-4">
+          <p className="text-sm text-text-muted mb-4">
+            Once you delete your account, there is no going back. All your quests, progress, and achievements will be permanently deleted.
+          </p>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="px-4 py-2 rounded-lg border border-error text-error hover:bg-error hover:text-white transition-colors text-sm font-medium"
+          >
+            Delete Account
+          </button>
+        </div>
+      </div>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-xl p-6 w-full max-w-sm space-y-4">
+            <h3 className="font-semibold text-text-primary text-lg">Delete Account</h3>
+            <p className="text-sm text-text-muted">
+              This action cannot be undone. Type <span className="font-mono font-semibold text-error">DELETE</span> to confirm.
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="Type DELETE to confirm"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder:text-text-muted"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteConfirmText("");
+                }}
+                className="flex-1 px-4 py-2 rounded-lg border border-border text-text-secondary hover:bg-surface-hover"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (deleteConfirmText === "DELETE") {
+                    deleteAccount.mutate();
+                  }
+                }}
+                disabled={deleteConfirmText !== "DELETE" || deleteAccount.isPending}
+                className="flex-1 px-4 py-2 rounded-lg bg-error text-white hover:bg-error/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleteAccount.isPending ? "Deleting..." : "Delete Account"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Feedback Form Modal */}
       <FeedbackForm isOpen={showFeedbackForm} onClose={() => setShowFeedbackForm(false)} />

@@ -55,6 +55,7 @@ export const questRouter = router({
           .default("PERSONAL"),
         dueDate: z.string().datetime().optional(),
         scheduledDate: z.string().optional(), // ISO date string (YYYY-MM-DD) for creating quests on a specific date
+        isRecurring: z.boolean().default(false), // Whether this quest repeats daily
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -70,6 +71,7 @@ export const questRouter = router({
           category: input.category as Category,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           userId: ctx.user.id,
+          isRecurring: input.isRecurring,
           ...(scheduledDate && { scheduledDate }),
         },
       });
@@ -239,6 +241,7 @@ export const questRouter = router({
           .enum(["HEALTH", "LEARNING", "CAREER", "PERSONAL", "FINANCE"])
           .optional(),
         dueDate: z.string().datetime().optional().nullable(),
+        isRecurring: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -261,6 +264,7 @@ export const questRouter = router({
           ...(input.dueDate !== undefined && {
             dueDate: input.dueDate ? new Date(input.dueDate) : null,
           }),
+          ...(input.isRecurring !== undefined && { isRecurring: input.isRecurring }),
         },
       });
 

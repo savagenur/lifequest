@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 interface AuthCardProps {
   children: React.ReactNode;
@@ -15,9 +16,13 @@ export function AuthCard({ children, title, description, footer }: AuthCardProps
       <div className="p-8">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">L</span>
-            </div>
+            <Image
+              src="/icon.svg"
+              alt="LifeQuest"
+              width={40}
+              height={40}
+              className="rounded-xl"
+            />
             <span className="text-xl font-bold text-text-primary">LifeQuest</span>
           </Link>
           <h1 className="text-2xl font-bold text-text-primary">{title}</h1>

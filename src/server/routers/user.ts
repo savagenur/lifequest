@@ -122,4 +122,45 @@ export const userRouter = router({
         include: { avatar: true },
       });
     }),
+
+  /**
+   * COMPLETE ONBOARDING
+   * -------------------
+   * Marks the user's onboarding as complete.
+   */
+  completeOnboarding: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      return ctx.db.user.update({
+        where: { id: ctx.user.id },
+        data: { onboardingComplete: true },
+      });
+    }),
+
+  /**
+   * DELETE ACCOUNT
+   * --------------
+   * Permanently deletes the user's account and all associated data.
+   */
+  deleteAccount: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const userId = ctx.user.id;
+
+      // Delete all user data in order (respecting foreign key constraints)
+      await ctx.db.$transaction([
+        ctx.db.pushSubscription.deleteMany({ where: { userId } }),
+        ctx.db.feedback.deleteMany({ where: { userId } }),
+        ctx.db.userBadge.deleteMany({ where: { userId } }),
+        ctx.db.goal.deleteMany({ where: { userId } }),
+        ctx.db.questCompletion.deleteMany({ where: { userId } }),
+        ctx.db.dailyQuestBatch.deleteMany({ where: { userId } }),
+        ctx.db.coachProfile.deleteMany({ where: { userId } }),
+        ctx.db.quest.deleteMany({ where: { userId } }),
+        ctx.db.avatar.deleteMany({ where: { userId } }),
+        ctx.db.session.deleteMany({ where: { userId } }),
+        ctx.db.account.deleteMany({ where: { userId } }),
+        ctx.db.user.delete({ where: { id: userId } }),
+      ]);
+
+      return { success: true };
+    }),
 });

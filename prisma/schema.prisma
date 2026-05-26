@@ -33,6 +33,9 @@ model User {
   longestStreak   Int       @default(0)      // Longest streak achieved
   lastActiveDate  DateTime?                 // Last date user completed a quest
 
+  // Onboarding
+  onboardingComplete Boolean @default(false) // Has user completed the onboarding flow
+
   // Auth relationships
   accounts Account[]
   sessions Session[]

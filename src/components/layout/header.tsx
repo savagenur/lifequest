@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { AvatarDisplay } from "@/components/ui/avatar-display";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Flame } from "lucide-react";
@@ -56,12 +56,19 @@ export function Header({
   const streakAtRisk = isStreakAtRisk(lastActiveDate);
   
   const [showStreakToast, setShowStreakToast] = useState(false);
-  const hasShownStreakToastRef = useRef(false);
 
-  // Show streak warning toast once when at risk
+  // Show streak warning toast once per browser session (only on fresh website open)
   useEffect(() => {
-    if (streakAtRisk && currentStreak > 0 && !hasShownStreakToastRef.current) {
-      hasShownStreakToastRef.current = true;
+    if (streakAtRisk && currentStreak > 0) {
+      // Use sessionStorage - clears when browser/tab is closed
+      const sessionKey = "lifequest_streak_toast_shown";
+      const alreadyShown = sessionStorage.getItem(sessionKey);
+      
+      if (alreadyShown) return;
+      
+      // Mark as shown for this session
+      sessionStorage.setItem(sessionKey, "true");
+      
       // Delay to let page load first
       const showTimer = setTimeout(() => {
         setShowStreakToast(true);
