@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Fredoka } from "next/font/google";
 import "./globals.css";
 import { TRPCProvider } from "@/lib/trpc-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fredoka = Fredoka({
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -43,11 +46,21 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/android/launchericon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/android/launchericon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/ios/180.png", sizes: "180x180", type: "image/png" },
+      { url: "/ios/167.png", sizes: "167x167", type: "image/png" },
+      { url: "/ios/152.png", sizes: "152x152", type: "image/png" },
+      { url: "/ios/144.png", sizes: "144x144", type: "image/png" },
+      { url: "/ios/128.png", sizes: "128x128", type: "image/png" },
+      { url: "/ios/120.png", sizes: "120x120", type: "image/png" },
+      { url: "/ios/114.png", sizes: "114x114", type: "image/png" },
+      { url: "/ios/76.png", sizes: "76x76", type: "image/png" },
+      { url: "/ios/72.png", sizes: "72x72", type: "image/png" },
+      { url: "/ios/60.png", sizes: "60x60", type: "image/png" },
+      { url: "/ios/57.png", sizes: "57x57", type: "image/png" },
     ],
   },
   appleWebApp: {
@@ -65,7 +78,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${fredoka.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

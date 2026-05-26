@@ -126,7 +126,7 @@ export function OnboardingFlow({ onComplete, userName }: OnboardingFlowProps) {
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-text-primary mb-2">
+        <h1 className="text-2xl font-display font-bold text-text-primary mb-2">
           {currentStep === 0 && userName
             ? `Welcome, ${userName.split(" ")[0]}!`
             : step.title}

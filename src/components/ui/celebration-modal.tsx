@@ -103,7 +103,7 @@ export function CelebrationModal({
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl font-bold text-text-primary mb-2">
+        <h2 className="text-2xl font-display font-bold text-text-primary mb-2">
           {title}
         </h2>
 
@@ -116,7 +116,7 @@ export function CelebrationModal({
         {xpEarned !== undefined && (
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-success-light rounded-full mb-4">
             <Zap className="w-5 h-5 text-success" />
-            <span className="font-bold text-success">+{xpEarned} XP</span>
+            <span className="font-display font-bold text-success">+{xpEarned} XP</span>
           </div>
         )}
 
@@ -135,7 +135,7 @@ export function CelebrationModal({
         {streak !== undefined && (
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="text-3xl">🔥</span>
-            <span className="text-2xl font-bold text-orange-500">{streak}</span>
+            <span className="text-2xl font-display font-bold text-orange-500">{streak}</span>
             <span className="text-text-muted">day streak!</span>
           </div>
         )}

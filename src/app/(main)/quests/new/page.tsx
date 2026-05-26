@@ -3,6 +3,7 @@
 import { trpc } from "@/lib/trpc";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { Switch } from "@/components/ui/switch";
 
 const categories = [
   { value: "HEALTH", label: "Health", icon: "💪" },
@@ -203,18 +204,10 @@ function NewQuestContent() {
             <p className="font-medium text-text-primary">Daily Recurring</p>
             <p className="text-sm text-text-muted mt-0.5">Repeats every day automatically</p>
           </div>
-          <button
-            onClick={() => setQuestForm({ ...questForm, isRecurring: !questForm.isRecurring })}
-            className={`relative w-14 h-7 rounded-full transition-colors ${
-              questForm.isRecurring ? "bg-primary" : "bg-border"
-            }`}
-          >
-            <span
-              className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                questForm.isRecurring ? "translate-x-8" : "translate-x-1"
-              }`}
-            />
-          </button>
+          <Switch
+            checked={questForm.isRecurring}
+            onCheckedChange={(checked) => setQuestForm({ ...questForm, isRecurring: checked })}
+          />
         </div>
       </div>
 

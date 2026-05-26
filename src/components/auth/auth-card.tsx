@@ -22,7 +22,7 @@ export function AuthCard({ children, title, description, footer }: AuthCardProps
               width={40}
               height={40}
             />
-            <span className="text-xl font-bold text-text-primary">LifeQuest</span>
+            <span className="text-xl font-display font-bold text-text-primary">LifeQuest</span>
           </Link>
           <h1 className="text-2xl font-bold text-text-primary">{title}</h1>
           {description && (

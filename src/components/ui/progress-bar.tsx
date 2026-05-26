@@ -37,7 +37,7 @@ export function ProgressBar({
     <div className="w-full">
       {(label || showValue) && (
         <div className="flex justify-between items-center mb-1 text-sm">
-          {label && <span className="text-gray-600 dark:text-gray-400">{label}</span>}
+          {label && <span className="font-display font-medium text-gray-600 dark:text-gray-400">{label}</span>}
           {showValue && (
             <span className="text-gray-500 dark:text-gray-400 font-medium">
               {value} / {max}

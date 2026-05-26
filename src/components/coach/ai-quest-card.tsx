@@ -90,7 +90,7 @@ export function AIQuestCard({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1 text-sm">
           <Zap className="w-4 h-4 text-warning" />
-          <span className="font-medium text-warning">+{xpReward} XP</span>
+          <span className="font-display font-semibold text-warning">+{xpReward} XP</span>
         </div>
 
         {isPending && (

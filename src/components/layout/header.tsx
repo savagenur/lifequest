@@ -109,7 +109,7 @@ export function Header({
               <ProgressBar
                 value={xpInCurrentLevel}
                 max={XP_PER_LEVEL}
-                label={`Level ${actualLevel}`}
+                label={`Lvl ${actualLevel}`}
                 size="sm"
                 color="purple"
               />

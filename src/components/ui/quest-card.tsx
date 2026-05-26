@@ -156,7 +156,7 @@ export function QuestCard({
           <div className="flex items-center gap-3 mt-3">
             <div className="flex items-center gap-1 text-sm">
               <Zap className="w-4 h-4 text-warning" />
-              <span className="font-medium text-warning">+{xpReward} XP</span>
+              <span className="font-display font-semibold text-warning">+{xpReward} XP</span>
             </div>
             {dueDate && (
               <div className="flex items-center gap-1 text-sm text-text-muted">

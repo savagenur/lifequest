@@ -69,7 +69,7 @@ export function AvatarDisplay({
           ${levelBadgeSize[size]}
           rounded-full bg-yellow-400 
           flex items-center justify-center 
-          font-bold text-yellow-900
+          font-display font-bold text-yellow-900
           ring-2 ring-white dark:ring-gray-800
         `}
       >

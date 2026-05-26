@@ -3,6 +3,7 @@
 import { CalendarPicker } from "@/components/ui/calendar-picker";
 import { CelebrationModal } from "@/components/ui/celebration-modal";
 import { QuestCard } from "@/components/ui/quest-card";
+import { Switch } from "@/components/ui/switch";
 import { formatLocalDate, getTodayLocalDateString } from "@/lib/date-utils";
 import { trpc } from "@/lib/trpc";
 import { ChevronDown, FileText, Plus, Search, Trophy, X, RefreshCw } from "lucide-react";
@@ -515,18 +516,10 @@ export default function QuestsPage() {
                 <p className="text-sm font-medium text-text-primary">Daily Recurring</p>
                 <p className="text-xs text-text-muted">Repeats every day automatically</p>
               </div>
-              <button
-                onClick={() => setQuestForm({ ...questForm, isRecurring: !questForm.isRecurring })}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  questForm.isRecurring ? "bg-primary" : "bg-border"
-                }`}
-              >
-                <span
-                  className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                    questForm.isRecurring ? "translate-x-7" : "translate-x-1"
-                  }`}
-                />
-              </button>
+              <Switch
+                checked={questForm.isRecurring}
+                onCheckedChange={(checked) => setQuestForm({ ...questForm, isRecurring: checked })}
+              />
             </div>
 
             {/* Submit */}
