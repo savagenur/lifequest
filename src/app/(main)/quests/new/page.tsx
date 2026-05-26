@@ -1,7 +1,7 @@
 "use client";
 
 import { trpc } from "@/lib/trpc";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const categories = [
@@ -37,20 +37,12 @@ const defaultQuestForm: QuestFormData = {
 
 export default function NewQuestPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [questForm, setQuestForm] = useState<QuestFormData>(defaultQuestForm);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   // Get scheduled date from URL query param or use today
-  const [scheduledDate] = useState(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const dateParam = urlParams.get("date");
-    if (dateParam) {
-      return dateParam;
-    }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today.toISOString().split("T")[0];
-  });
+  const scheduledDate = searchParams.get("date") ?? new Date().toISOString().split("T")[0];
 
   const utils = trpc.useUtils();
 
