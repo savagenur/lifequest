@@ -44,6 +44,11 @@ export const authConfig: NextAuthConfig = {
       );
       const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
 
+      // Redirect from "/" to "/quests"
+      if (nextUrl.pathname === "/") {
+        return Response.redirect(new URL("/quests", nextUrl));
+      }
+
       // Allow API auth routes
       if (isApiAuthRoute) {
         return true;
@@ -51,7 +56,7 @@ export const authConfig: NextAuthConfig = {
 
       // Redirect logged-in users away from auth pages
       if (isAuthRoute && isLoggedIn) {
-        return Response.redirect(new URL("/", nextUrl));
+        return Response.redirect(new URL("/quests", nextUrl));
       }
 
       // Allow public routes

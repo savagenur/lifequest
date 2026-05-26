@@ -46,7 +46,7 @@ export function AvatarDisplay({
           ${sizeClasses[size]} 
           rounded-full bg-linear-to-br from-purple-500 to-blue-500
           flex items-center justify-center text-white font-bold
-          ring-2 ring-white dark:ring-gray-800 shadow-lg
+          ring-2 ring-white dark:ring-gray-800 shadow-lg relative overflow-hidden
         `}
       >
         {imageUrl ? (
@@ -54,6 +54,7 @@ export function AvatarDisplay({
             src={imageUrl}
             alt={name || "Avatar"}
             fill
+            sizes="(max-width: 768px) 40px, 56px"
             className="rounded-full object-cover"
           />
         ) : (

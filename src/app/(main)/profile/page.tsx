@@ -206,13 +206,14 @@ export default function ProfilePage() {
             <div
               className="w-28 h-28 rounded-full bg-linear-to-br from-purple-500 to-blue-500
                 flex items-center justify-center text-white font-bold text-2xl
-                ring-2 ring-white dark:ring-gray-800 shadow-lg overflow-hidden"
+                ring-2 ring-white dark:ring-gray-800 shadow-lg relative overflow-hidden"
             >
               {user?.avatar?.imageUrl ? (
                 <Image
                   src={user.avatar.imageUrl}
                   alt={user?.name || "Avatar"}
                   fill
+                  sizes="112px"
                   className="rounded-full object-cover"
                 />
               ) : (

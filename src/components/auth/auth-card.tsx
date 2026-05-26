@@ -21,7 +21,6 @@ export function AuthCard({ children, title, description, footer }: AuthCardProps
               alt="LifeQuest"
               width={40}
               height={40}
-              className="rounded-xl"
             />
             <span className="text-xl font-bold text-text-primary">LifeQuest</span>
           </Link>
