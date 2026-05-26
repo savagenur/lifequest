@@ -138,7 +138,7 @@ function NewQuestContent() {
             <span className="text-text-muted">{showCategoryDropdown ? "▲" : "▼"}</span>
           </button>
           {showCategoryDropdown && (
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-2 grid grid-cols-5 gap-2">
               {categories.map((cat) => (
                 <button
                   key={cat.value}
@@ -146,14 +146,14 @@ function NewQuestContent() {
                     setQuestForm({ ...questForm, category: cat.value as typeof questForm.category });
                     setShowCategoryDropdown(false);
                   }}
-                  className={`px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 transition-all ${
+                  className={`px-3 py-3 rounded-xl text-sm font-medium transition-all flex flex-col items-center gap-1 ${
                     questForm.category === cat.value
                       ? "bg-primary text-white shadow-md"
                       : "bg-surface-secondary text-text-secondary hover:bg-surface-hover"
                   }`}
                 >
-                  <span className="text-base">{cat.icon}</span>
-                  <span className="font-medium">{cat.label}</span>
+                  <span className="text-lg">{cat.icon}</span>
+                  <span>{cat.label}</span>
                 </button>
               ))}
             </div>
