@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { logout } from "@/lib/auth-actions";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { PWAInstallGuide } from "@/components/ui/pwa-install-guide";
 import Image from "next/image";
 
 // XP required per level (100 XP per level) - same as header
@@ -401,6 +402,7 @@ export default function ProfilePage() {
       <div className="bg-surface rounded-xl border border-border divide-y divide-border">
         <ThemeToggle />
         <NotificationSettings />
+        <PWAInstallGuide />
         <button
           onClick={() => setShowFeedbackForm(true)}
           className="w-full flex items-center gap-3 p-4 text-left hover:bg-surface-hover transition-colors"
