@@ -138,7 +138,7 @@ function NewQuestContent() {
             <span className="text-text-muted">{showCategoryDropdown ? "▲" : "▼"}</span>
           </button>
           {showCategoryDropdown && (
-            <div className="mt-2 grid grid-cols-5 gap-2">
+            <div className="mt-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-2">
               {categories.map((cat) => (
                 <button
                   key={cat.value}
