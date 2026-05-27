@@ -43,14 +43,15 @@ export const authConfig: NextAuthConfig = {
         nextUrl.pathname.startsWith(route)
       );
       const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
+      const isApiTrpcRoute = nextUrl.pathname.startsWith("/api/trpc");
 
       // Redirect from "/" to "/quests"
       if (nextUrl.pathname === "/") {
         return Response.redirect(new URL("/quests", nextUrl));
       }
 
-      // Allow API auth routes
-      if (isApiAuthRoute) {
+      // Allow API auth routes and tRPC routes (tRPC handles its own auth)
+      if (isApiAuthRoute || isApiTrpcRoute) {
         return true;
       }
 
