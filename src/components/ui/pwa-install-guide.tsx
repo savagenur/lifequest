@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Smartphone, X, Share, MoreVertical, Plus, Download } from "lucide-react";
 
 type DeviceType = "ios" | "android" | "desktop" | "unknown";
@@ -25,24 +25,33 @@ function getIsStandalone(): boolean {
     (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 }
 
-const subscribeNoop = () => () => {};
-
 export function PWAInstallGuide() {
   const [showModal, setShowModal] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  
-  const device = useSyncExternalStore(subscribeNoop, getDeviceType, () => "unknown" as DeviceType);
-  const isInstalled = useSyncExternalStore(subscribeNoop, getIsStandalone, () => false);
+  const [device, setDevice] = useState<DeviceType>("unknown");
+  const [isInstalled, setIsInstalled] = useState(false);
+  const hasReadData = useRef(false);
 
   useEffect(() => {
-    // Set mounted after hydration to avoid mismatch
-    // Defer to next tick to satisfy React Compiler
-    requestAnimationFrame(() => {
-      setIsMounted(true);
-    });
+    // Read browser APIs only once after mount to avoid hydration mismatch
+    // Use setTimeout to make setState asynchronous and satisfy React Compiler
+    if (!hasReadData.current) {
+      hasReadData.current = true;
+      setTimeout(() => {
+        setDevice(getDeviceType());
+        setIsInstalled(getIsStandalone());
+        setIsMounted(true);
+      }, 0);
+    }
   }, []);
 
-  if (!isMounted || isInstalled) {
+  // Don't render button if already installed
+  if (isMounted && isInstalled) {
+    return null;
+  }
+
+  // Don't render button on server (will render on client after mount)
+  if (!isMounted) {
     return null;
   }
 
