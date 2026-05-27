@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { Smartphone, X, Share, MoreVertical, Plus, Download } from "lucide-react";
 
 type DeviceType = "ios" | "android" | "desktop" | "unknown";
@@ -29,11 +29,20 @@ const subscribeNoop = () => () => {};
 
 export function PWAInstallGuide() {
   const [showModal, setShowModal] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   const device = useSyncExternalStore(subscribeNoop, getDeviceType, () => "unknown" as DeviceType);
   const isInstalled = useSyncExternalStore(subscribeNoop, getIsStandalone, () => false);
 
-  if (isInstalled) {
+  useEffect(() => {
+    // Set mounted after hydration to avoid mismatch
+    // Defer to next tick to satisfy React Compiler
+    requestAnimationFrame(() => {
+      setIsMounted(true);
+    });
+  }, []);
+
+  if (!isMounted || isInstalled) {
     return null;
   }
 
